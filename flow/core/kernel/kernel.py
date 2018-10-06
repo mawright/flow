@@ -1,3 +1,4 @@
+"""Script containing the Flow kernel object for interacting with simulators."""
 from flow.core.kernel.simulation import TraCISimulation
 from flow.core.kernel.scenario import TraCIScenario
 from flow.core.kernel.vehicle import TraCIVehicle
