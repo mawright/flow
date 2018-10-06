@@ -292,15 +292,3 @@ class KernelVehicle(object):
         list<str>
         """
         raise NotImplementedError
-
-
-class TraCIVehicle(KernelVehicle):
-    """
-
-    """
-
-    def __init__(self):
-        """
-
-        """
-        super(KernelVehicle, self).__init__()

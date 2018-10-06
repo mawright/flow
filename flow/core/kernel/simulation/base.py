@@ -58,15 +58,3 @@ class KernelSimulation(object):
         nothing
         """
         raise NotImplementedError
-
-
-class TraCISimulation(KernelSimulation):
-    """
-
-    """
-
-    def __init__(self):
-        """
-
-        """
-        super(KernelSimulation, self).__init__()

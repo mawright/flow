@@ -11,14 +11,14 @@ class Kernel(object):
     the various components of a traffic simulator.
 
     - simulation: controls starting, loading, saving, advancing, and resetting
-      a simulation in Flow (see flow/core/kernel/simulation.py)
+      a simulation in Flow (see flow/core/kernel/simulation/base.py)
     - scenario: stores network-specific information (see
-      flow/core/kernel/scenario.py)
+      flow/core/kernel/scenario/base.py)
     - vehicle: stores and regularly updates vehicle-specific information. At
       times, this class is optimized to efficiently collect information from
-      the simulator (see flow/core/kernel/vehicle.py).
+      the simulator (see flow/core/kernel/vehicle/base.py).
     - traffic_light: stores and regularly updates traffic light-specific
-      information (see flow/core/kernel/traffic_light.py).
+      information (see flow/core/kernel/traffic_light/base.py).
 
     The above kernel subclasses are designed specifically to support
     simulator-agnostic state information calling. For example, if you would
