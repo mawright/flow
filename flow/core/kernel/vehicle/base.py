@@ -5,11 +5,11 @@ class KernelVehicle(object):
 
     """
 
-    def __init__(self):
+    def __init__(self, kernel_api):
         """
 
         """
-        pass
+        self.kernel_api = kernel_api
 
     def update(self):
         """
@@ -68,7 +68,7 @@ class KernelVehicle(object):
 
         Parameters
         ----------
-        veh_id : str or list<str>
+        veh_id : str or list of str
             vehicle id, or list of vehicle ids
         error : any, optional
             value that is returned if the vehicle is not found
@@ -84,14 +84,14 @@ class KernelVehicle(object):
 
         Parameters
         ----------
-        veh_id : str or list<str>
+        veh_id : str or list of str
             vehicle id, or list of vehicle ids
         error : any, optional
             value that is returned if the vehicle is not found
 
         Returns
         -------
-        float
+        float or list of float
         """
         raise NotImplementedError
 
@@ -100,14 +100,14 @@ class KernelVehicle(object):
 
         Parameters
         ----------
-        veh_id : str or list<str>
+        veh_id : str or list of str
             vehicle id, or list of vehicle ids
         error : any, optional
             value that is returned if the vehicle is not found
 
         Returns
         -------
-        float
+        float or list of float
         """
         raise NotImplementedError
 
@@ -116,7 +116,7 @@ class KernelVehicle(object):
 
         Parameters
         ----------
-        veh_id : str or list<str>
+        veh_id : str or list of str
             vehicle id, or list of vehicle ids
         error : any, optional
             value that is returned if the vehicle is not found
@@ -132,7 +132,7 @@ class KernelVehicle(object):
 
         Parameters
         ----------
-        veh_id : str or list<str>
+        veh_id : str or list of str
             vehicle id, or list of vehicle ids
         error : any, optional
             value that is returned if the vehicle is not found
@@ -148,7 +148,7 @@ class KernelVehicle(object):
 
         Parameters
         ----------
-        veh_id : str or list<str>
+        veh_id : str or list of str
             vehicle id, or list of vehicle ids
         error : any, optional
             value that is returned if the vehicle is not found
@@ -164,14 +164,14 @@ class KernelVehicle(object):
 
         Parameters
         ----------
-        veh_id : str or list<str>
+        veh_id : str or list of str
             vehicle id, or list of vehicle ids
         error : any, optional
             value that is returned if the vehicle is not found
 
         Returns
         -------
-        list<str>
+        list of str
         """
         raise NotImplementedError
 
@@ -180,7 +180,7 @@ class KernelVehicle(object):
 
         Parameters
         ----------
-        veh_id : str or list<str>
+        veh_id : str or list of str
             vehicle id, or list of vehicle ids
         error : any, optional
             value that is returned if the vehicle is not found
@@ -196,7 +196,7 @@ class KernelVehicle(object):
 
         Parameters
         ----------
-        veh_id : str or list<str>
+        veh_id : str or list of str
             vehicle id, or list of vehicle ids
         error : any, optional
             value that is returned if the vehicle is not found
@@ -212,7 +212,7 @@ class KernelVehicle(object):
 
         Parameters
         ----------
-        veh_id : str or list<str>
+        veh_id : str or list of str
             vehicle id, or list of vehicle ids
         error : any, optional
             value that is returned if the vehicle is not found
@@ -231,14 +231,14 @@ class KernelVehicle(object):
 
         Parameters
         ----------
-        veh_id : str or list<str>
+        veh_id : str or list of str
             vehicle id, or list of vehicle ids
         error : any, optional
             value that is returned if the vehicle is not found
 
         Returns
         -------
-        list<float>
+        list of float
         """
         raise NotImplementedError
 
@@ -247,14 +247,14 @@ class KernelVehicle(object):
 
         Parameters
         ----------
-        veh_id : str or list<str>
+        veh_id : str or list of str
             vehicle id, or list of vehicle ids
         error : any, optional
             value that is returned if the vehicle is not found
 
         Returns
         -------
-        list<float>
+        list of float
         """
         raise NotImplementedError
 
@@ -266,14 +266,14 @@ class KernelVehicle(object):
 
         Parameters
         ----------
-        veh_id : str or list<str>
+        veh_id : str or list of str
             vehicle id, or list of vehicle ids
         error : any, optional
             value that is returned if the vehicle is not found
 
         Returns
         -------
-        list<float>
+        list of float
         """
         raise NotImplementedError
 
@@ -289,6 +289,6 @@ class KernelVehicle(object):
 
         Returns
         -------
-        list<str>
+        list of str
         """
         raise NotImplementedError

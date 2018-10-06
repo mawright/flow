@@ -302,11 +302,6 @@ class Env(gym.Env, Serializable):
             tc.VAR_TELEPORT_STARTING_VEHICLES_IDS
         ])
 
-        # subscribe the traffic light
-        for node_id in self.traffic_lights.get_ids():
-            self.traci_connection.trafficlight.subscribe(
-                node_id, [tc.TL_RED_YELLOW_GREEN_STATE])
-
         for veh_id in self.vehicles.get_ids():
             # some constant vehicle parameters to the vehicles class
             self.vehicles.set_state(
@@ -338,16 +333,11 @@ class Env(gym.Env, Serializable):
 
         # collect subscription information from sumo
         vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
-        tls_obs = self.traci_connection.trafficlight.getSubscriptionResults()
         id_lists = {
             tc.VAR_DEPARTED_VEHICLES_IDS: [],
             tc.VAR_TELEPORT_STARTING_VEHICLES_IDS: [],
             tc.VAR_ARRIVED_VEHICLES_IDS: []
         }
-
-        # store new observations in the vehicles and traffic lights class
-        self.vehicles.update(vehicle_obs, id_lists, self)
-        self.traffic_lights.update(tls_obs)
 
         # store the network observations in the vehicles class
         self.vehicles.update(vehicle_obs, id_lists, self)
@@ -430,12 +420,9 @@ class Env(gym.Env, Serializable):
                 self.traci_connection.vehicle.getSubscriptionResults()
             id_lists = \
                 self.traci_connection.simulation.getSubscriptionResults()
-            tls_obs = \
-                self.traci_connection.trafficlight.getSubscriptionResults()
 
             # store new observations in the vehicles and traffic lights class
             self.vehicles.update(vehicle_obs, id_lists, self)
-            self.traffic_lights.update(tls_obs)
 
             # update the colors of vehicles
             self.update_vehicle_colors()
@@ -594,16 +581,11 @@ class Env(gym.Env, Serializable):
                     departPos=str(lane_pos),
                     departSpeed=str(speed))
 
-        self.traci_connection.simulationStep()
+        # advance the simulation in the simulator by one step
+        self.kernel.simulation.simulation_step()
 
-        # collect subscription information from sumo
-        vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
-        id_lists = self.traci_connection.simulation.getSubscriptionResults()
-        tls_obs = self.traci_connection.trafficlight.getSubscriptionResults()
-
-        # store new observations in the vehicles and traffic lights class
-        self.vehicles.update(vehicle_obs, id_lists, self)
-        self.traffic_lights.update(tls_obs)
+        # update the information in each kernel to match the current state
+        self.kernel.update()
 
         # update the colors of vehicles
         self.update_vehicle_colors()

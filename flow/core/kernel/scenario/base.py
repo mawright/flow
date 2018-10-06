@@ -8,11 +8,11 @@ class KernelScenario(object):
 
     """
 
-    def __init__(self):
+    def __init__(self, kernel_api):
         """
-        
+
         """
-        pass
+        self.kernel_api = kernel_api
 
     def update(self):
         """
