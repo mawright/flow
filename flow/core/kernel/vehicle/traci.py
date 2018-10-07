@@ -239,13 +239,13 @@ class TraCIVehicle(KernelVehicle):
             self.type_parameters[veh_type]["initial_speed"]
 
         # set the speed mode for the vehicle
-        speed_mode = self.type_parameters[veh_type]["speed_mode"]
-        self.__vehicles[veh_id]["speed_mode"] = speed_mode
+        speed_mode = self.type_parameters[veh_type][
+            "sumo_car_following_params"].speed_mode
         self.kernel_api.vehicle.setSpeedMode(veh_id, speed_mode)
 
         # set the lane changing mode for the vehicle
-        lc_mode = self.type_parameters[veh_type]["lane_change_mode"]
-        self.__vehicles[veh_id]["lane_change_mode"] = lc_mode
+        lc_mode = self.type_parameters[veh_type][
+            "sumo_lc_params"].lane_change_mode
         self.kernel_api.vehicle.setLaneChangeMode(veh_id, lc_mode)
 
         # make sure that the order of rl_ids is kept sorted

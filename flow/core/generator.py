@@ -124,6 +124,12 @@ class Generator(Serializable):
             indx = next(i for i, nd in enumerate(nodes) if nd["id"] == n_id)
             nodes[indx]["type"] = "traffic_light"
 
+        # for nodes that have traffic lights that haven't been added
+        for node in nodes:
+            if node["id"] not in traffic_lights.get_ids() \
+                    and node.get("type", None) == "traffic_light":
+                traffic_lights.add(node["id"])
+
         # xml file for nodes; contains nodes for the boundary points with
         # respect to the x and y axes
         x = makexml("nodes", "http://sumo.dlr.de/xsd/nodes_file.xsd")
@@ -244,12 +250,13 @@ class Generator(Serializable):
         # add (optionally) the traffic light properties to the .add.xml file
         if traffic_lights.num_traffic_lights > 0:
             if traffic_lights.baseline:
-                tl_type = str(traffic_lights["tl_type"])
-                program_id = str(traffic_lights["program_id"])
-                phases = traffic_lights["phases"]
-                max_gap = str(traffic_lights["max_gap"])
-                detector_gap = str(traffic_lights["detector_gap"])
-                show_detector = traffic_lights["show_detectors"]
+                tl_params = traffic_lights.actuated_default()
+                tl_type = str(tl_params["tl_type"])
+                program_id = str(tl_params["program_id"])
+                phases = tl_params["phases"]
+                max_gap = str(tl_params["max_gap"])
+                detector_gap = str(tl_params["detector_gap"])
+                show_detector = tl_params["show_detectors"]
 
                 detectors = {"key": "detector-gap", "value": detector_gap}
                 gap = {"key": "max-gap", "value": max_gap}
@@ -342,7 +349,7 @@ class Generator(Serializable):
         printxml(cfg, self.cfg_path + self.sumfn)
         return self.sumfn
 
-    def make_routes(self, scenario, positions, lanes, shuffle):
+    def make_routes(self, scenario, positions, lanes, speeds, shuffle):
         """Generate .rou.xml files using net files and netconvert.
 
         This file specifies the sumo-specific properties of vehicles with
@@ -359,6 +366,8 @@ class Generator(Serializable):
             list of start positions [(edge0, pos0), (edge1, pos1), ...]
         lanes : list of float
             list of start lanes
+        speeds : list of float
+            list of start speeds
         shuffle : bool
             specifies whether the vehicle IDs should be shuffled before the
             vehicles are assigned starting positions
@@ -383,8 +392,6 @@ class Generator(Serializable):
         for i, veh_id in enumerate(self.vehicle_ids):
             veh_type = vehicles.get_state(veh_id, "type")
             edge, pos = positions[i]
-            lane = lanes[i]
-            type_depart_speed = vehicles.get_initial_speed(veh_id)
             routes.append(
                 self._vehicle(
                     veh_type,
@@ -392,9 +399,9 @@ class Generator(Serializable):
                     depart="0",
                     id=veh_id,
                     color="1,1,1",
-                    departSpeed=str(type_depart_speed),
+                    departSpeed=str(speeds[i]),
                     departPos=str(pos),
-                    departLane=str(lane)))
+                    departLane=str(lanes[i])))
 
         # add the in-flows from various edges to the xml file
         if self.net_params.inflows is not None:

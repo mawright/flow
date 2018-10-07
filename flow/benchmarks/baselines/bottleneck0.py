@@ -4,7 +4,7 @@ Baseline is no AVs.
 """
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
-    InFlows
+    InFlows, SumoLaneChangeParams, SumoCarFollowingParams
 from flow.core.traffic_lights import TrafficLights
 from flow.core.vehicles import Vehicles
 from flow.controllers import ContinuousRouter
@@ -42,9 +42,13 @@ def bottleneck0_baseline(num_runs, render=True):
     """
     vehicles = Vehicles()
     vehicles.add(veh_id="human",
-                 speed_mode=9,
+                 sumo_car_following_params=SumoCarFollowingParams(
+                     speed_mode=9,
+                 ),
                  routing_controller=(ContinuousRouter, {}),
-                 lane_change_mode=0,
+                 sumo_lc_params=SumoLaneChangeParams(
+                     lane_change_mode=0,
+                 ),
                  num_vehicles=1 * SCALING)
 
     controlled_segments = [("1", 1, False), ("2", 2, True), ("3", 2, True),
@@ -119,16 +123,13 @@ def bottleneck0_baseline(num_runs, render=True):
     exp = SumoExperiment(env, scenario)
 
     results = exp.run(num_runs, HORIZON)
-    avg_outflow = np.mean([outflow[-1]
-                           for outflow in results["per_step_returns"]])
-
-    return avg_outflow
+    return np.mean(results["returns"]), np.std(results["returns"])
 
 
 if __name__ == "__main__":
     runs = 2  # number of simulations to average over
-    res = bottleneck0_baseline(num_runs=runs)
+    mean, std = bottleneck0_baseline(num_runs=runs, render=False)
 
     print('---------')
-    print('The average outflow over 500 seconds '
-          'across {} runs is {}'.format(runs, res))
+    print('The average outflow, std. deviation over 500 seconds '
+          'across {} runs is {}, {}'.format(runs, mean, std))

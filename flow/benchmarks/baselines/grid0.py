@@ -59,11 +59,11 @@ def grid0_baseline(num_runs, render=True):
                  sumo_car_following_params=SumoCarFollowingParams(
                      min_gap=2.5,
                      max_speed=V_ENTER,
+                     speed_mode="right_of_way",
                  ),
                  routing_controller=(GridRouter, {}),
                  num_vehicles=(N_LEFT+N_RIGHT)*N_COLUMNS +
-                              (N_BOTTOM+N_TOP)*N_ROWS,
-                 speed_mode="right_of_way")
+                              (N_BOTTOM+N_TOP)*N_ROWS)
 
     # inflows of vehicles are place on all outer edges (listed here)
     outer_edges = []
@@ -80,14 +80,16 @@ def grid0_baseline(num_runs, render=True):
 
     # define the traffic light logic
     tl_logic = TrafficLights(baseline=False)
-    phases = [{"duration": "31", "minDur": "8", "maxDur": "45",
+
+    phases = [{"duration": "31", "minDur": "5", "maxDur": "45",
                "state": "GGGrrrGGGrrr"},
-              {"duration": "6", "minDur": "3", "maxDur": "6",
+              {"duration": "2", "minDur": "2", "maxDur": "2",
                "state": "yyyrrryyyrrr"},
-              {"duration": "31", "minDur": "8", "maxDur": "45",
+              {"duration": "31", "minDur": "5", "maxDur": "45",
                "state": "rrrGGGrrrGGG"},
-              {"duration": "6", "minDur": "3", "maxDur": "6",
+              {"duration": "2", "minDur": "2", "maxDur": "2",
                "state": "rrryyyrrryyy"}]
+
     for i in range(N_ROWS*N_COLUMNS):
         tl_logic.add("center"+str(i), tls_type="actuated", phases=phases,
                      programID=1)
@@ -127,7 +129,7 @@ def grid0_baseline(num_runs, render=True):
                 "switch_time": 2,
                 "num_observed": 2,
                 "discrete": False,
-                "tl_type": "controlled"
+                "tl_type": "actuated"
             },
         )
 
@@ -151,7 +153,7 @@ def grid0_baseline(num_runs, render=True):
 
 
 if __name__ == "__main__":
-    runs = 2  # number of simulations to average over
+    runs = 1  # number of simulations to average over
     res = grid0_baseline(num_runs=runs)
 
     print('---------')

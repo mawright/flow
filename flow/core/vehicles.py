@@ -3,18 +3,8 @@
 from flow.controllers.car_following_models import SumoCarFollowingController
 from flow.controllers.rlcontroller import RLController
 from flow.controllers.lane_change_controllers import SumoLaneChangeController
-import collections
-import logging
-
 from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
-
-SPEED_MODES = {
-    "aggressive": 0,
-    "no_collide": 1,
-    "right_of_way": 25,
-    "all_checks": 31
-}
-LC_MODES = {"aggressive": 0, "no_lat_collide": 512, "strategic": 1621}
+import collections
 
 
 class Vehicles:
@@ -46,7 +36,6 @@ class Vehicles:
         self.num_rl_vehicles = 0  # number of rl vehicles in the network
         self.num_types = 0  # number of unique types of vehicles in the network
         self.types = []  # types of vehicles in the network
-        self.initial_speeds = []  # speed of vehicles at the start of a rollout
 
         # contains the parameters associated with each type of vehicle
         self.type_parameters = dict()
@@ -74,10 +63,7 @@ class Vehicles:
             acceleration_controller=(SumoCarFollowingController, {}),
             lane_change_controller=(SumoLaneChangeController, {}),
             routing_controller=None,
-            initial_speed=0,
             num_vehicles=1,
-            speed_mode='right_of_way',
-            lane_change_mode="no_lat_collide",
             sumo_car_following_params=None,
             sumo_lc_params=None):
         """Add a sequence of vehicles to the list of vehicles in the network.
@@ -98,40 +84,8 @@ class Vehicles:
             1st element: flow-specified routing controller
             2nd element: controller parameters (may be set to None to maintain
             default parameters)
-        initial_speed : float, optional  # TODO: move to gen_start_pos
-            initial speed of the vehicles being added (in m/s)
         num_vehicles : int, optional
             number of vehicles of this type to be added to the network
-        speed_mode : str or int, optional  # TODO: move to sumo_cf_params
-            may be one of the following:
-
-             * "right_of_way" (default): respect safe speed, right of way and
-               brake hard at red lights if needed. DOES NOT respect
-               max accel and decel which enables emergency stopping.
-               Necessary to prevent custom models from crashing
-             * "no_collide": Human and RL cars are preventing from reaching
-               speeds that may cause crashes (also serves as a failsafe).
-             * "aggressive": Human and RL cars are not limited by sumo with
-               regard to their accelerations, and can crash longitudinally
-             * "all_checks": all sumo safety checks are activated
-             * int values may be used to define custom speed mode for the given
-               vehicles, specified at:
-               http://sumo.dlr.de/wiki/TraCI/Change_Vehicle_State#speed_mode_.280xb3.29
-
-        lane_change_mode : str or int, optional  # TODO: move to sumo_lc_params
-            may be one of the following:
-
-            * "no_lat_collide" (default): Human cars will not make lane
-              changes, RL cars can lane change into any space, no matter how
-              likely it is to crash
-            * "strategic": Human cars make lane changes in accordance with SUMO
-              to provide speed boosts
-            * "aggressive": RL cars are not limited by sumo with regard to
-              their lane-change actions, and can crash longitudinally
-            * int values may be used to define custom lane change modes for the
-              given vehicles, specified at:
-              http://sumo.dlr.de/wiki/TraCI/Change_Vehicle_State#lane_change_mode_.280xb6.29
-
         sumo_car_following_params : flow.core.params.SumoCarFollowingParams
             Params object specifying attributes for Sumo car following model.
         sumo_lc_params : flow.core.params.SumoLaneChangeParams
@@ -153,33 +107,12 @@ class Vehicles:
                 and acceleration_controller[0] != RLController:
             type_params["minGap"] = 0.0
 
-        # adjust the speed mode value
-        if isinstance(speed_mode, str) and speed_mode in SPEED_MODES:
-            speed_mode = SPEED_MODES[speed_mode]
-        elif not (isinstance(speed_mode, int)
-                  or isinstance(speed_mode, float)):
-            logging.error("Setting speed mode of {0} to "
-                          "default.".format(veh_id))
-            speed_mode = SPEED_MODES["no_collide"]
-
-        # adjust the lane change mode value
-        if isinstance(lane_change_mode, str) and lane_change_mode in LC_MODES:
-            lane_change_mode = LC_MODES[lane_change_mode]
-        elif not (isinstance(lane_change_mode, int)
-                  or isinstance(lane_change_mode, float)):
-            logging.error("Setting lane change mode of {0} to "
-                          "default.".format(veh_id))
-            lane_change_mode = LC_MODES["no_lat_collide"]
-
         # this dict will be used when trying to introduce new vehicles into
         # the network via a flow
         self.type_parameters[veh_id] = \
             {"acceleration_controller": acceleration_controller,
              "lane_change_controller": lane_change_controller,
              "routing_controller": routing_controller,
-             "initial_speed": initial_speed,
-             "speed_mode": speed_mode,
-             "lane_change_mode": lane_change_mode,
              "sumo_car_following_params": sumo_car_following_params,
              "sumo_lc_params": sumo_lc_params}
 
@@ -192,14 +125,8 @@ class Vehicles:
                 lane_change_controller,
             "routing_controller":
                 routing_controller,
-            "initial_speed":
-                initial_speed,
             "num_vehicles":
                 num_vehicles,
-            "speed_mode":
-                speed_mode,
-            "lane_change_mode":
-                lane_change_mode,
             "sumo_car_following_params":
                 sumo_car_following_params,
             "sumo_lc_params":
@@ -240,9 +167,6 @@ class Vehicles:
             else:
                 self.__vehicles[v_id]["router"] = None
 
-            # specify the speed of vehicles at the start of a rollout
-            self.__vehicles[v_id]["initial_speed"] = initial_speed
-
             # check if the vehicle is human-driven or autonomous
             if acceleration_controller[0] == RLController:
                 self.__rl_ids.append(v_id)
@@ -255,10 +179,6 @@ class Vehicles:
                     self.__controlled_ids.append(v_id)
                 if lane_change_controller[0] != SumoLaneChangeController:
                     self.__controlled_lc_ids.append(v_id)
-
-            # specify the speed and lane change mode for the vehicle
-            self.__vehicles[v_id]["speed_mode"] = speed_mode
-            self.__vehicles[v_id]["lane_change_mode"] = lane_change_mode
 
         # update the variables for the number of vehicles in the network
         self.num_vehicles = len(self.__ids)
