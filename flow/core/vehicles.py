@@ -17,7 +17,7 @@ class Vehicles:
 
     def __init__(self):
         """Instantiate the base vehicle class."""
-        self.__ids = []  # ids of all vehicles
+        self.ids = []  # ids of all vehicles
         self.__human_ids = []  # ids of human-driven vehicles
         self.__controlled_ids = []  # ids of flow-controlled vehicles
         self.__controlled_lc_ids = []  # ids of flow lc-controlled vehicles
@@ -140,7 +140,7 @@ class Vehicles:
             v_id = veh_id + '_%d' % i
 
             # add the vehicle to the list of vehicle ids
-            self.__ids.append(v_id)
+            self.ids.append(v_id)
 
             self.__vehicles[v_id] = dict()
 
@@ -181,10 +181,13 @@ class Vehicles:
                     self.__controlled_lc_ids.append(v_id)
 
         # update the variables for the number of vehicles in the network
-        self.num_vehicles = len(self.__ids)
+        self.num_vehicles = len(self.ids)
         self.num_rl_vehicles = len(self.__rl_ids)
 
         # increase the number of unique types of vehicles in the network, and
         # add the type to the list of types
         self.num_types += 1
         self.types.append({"veh_id": veh_id, "type_params": type_params})
+
+    def get_type(self, veh_id):
+        return self.__vehicles[veh_id]["type"]

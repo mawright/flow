@@ -41,7 +41,13 @@ class Kernel(object):
     traffic simulators, e.g. SUMO, AIMSUN, TruckSim, etc...
     """
 
-    def __init__(self, simulator):
+    def __init__(self,
+                 simulator,
+                 kernel_api,
+                 sim_params,
+                 scenario,
+                 vehicles,
+                 traffic_lights):
         """Instantiate a Flow kernel object.
 
         Parameters
@@ -55,15 +61,18 @@ class Kernel(object):
             if the specified input simulator is not a valid type
         """
         if simulator == "traci":
-            self.simulation = TraCISimulation()
-            self.scenario = TraCIScenario()
-            self.vehicle = TraCIVehicle()
-            self.traffic_light = TraCITrafficLight()
+            self.simulation = TraCISimulation(self, kernel_api)
+            # self.scenario = TraCIScenario(self, kernel_api, scenario)
+            self.scenario = scenario
+            self.vehicle = TraCIVehicle(self, kernel_api, sim_params, vehicles)
+            # self.traffic_light = TraCITrafficLight(self, kernel_api,
+            #                                        traffic_lights)
+            self.traffic_light = traffic_lights
         else:
             raise ValueError('Simulator type "{}" is not valid.'.
                              format(simulator))
 
-    def update(self):
+    def update(self, reset):
         """Update the kernel subclasses with after a simulation step.
 
         This is meant to support optimizations in the performance of some
@@ -71,7 +80,7 @@ class Kernel(object):
         "traci" simulator uses the ``update`` method to collect and store
         subscription information.
         """
-        self.scenario.update()
-        self.simulation.update()
-        self.vehicle.update()
-        self.traffic_light.update()
+        # self.scenario.update()
+        # self.simulation.update()
+        self.vehicle.update(reset)
+        # self.traffic_light.update()

@@ -53,7 +53,6 @@ class Generator(Serializable):
         self.cfg_path = os.path.dirname(os.path.abspath(__file__)) \
             + "/debug/cfg/"
         self.base = base
-        self.vehicle_ids = []
 
         ensure_dir("%s" % self.net_path)
         ensure_dir("%s" % self.cfg_path)
@@ -383,14 +382,14 @@ class Generator(Serializable):
             }
             routes.append(E("vType", id=params["veh_id"], **type_params_str))
 
-        self.vehicle_ids = vehicles.get_ids()
+        vehicle_ids = vehicles.ids
 
         if shuffle:
-            random.shuffle(self.vehicle_ids)
+            random.shuffle(vehicle_ids)
 
         # add the initial positions of vehicles to the xml file
-        for i, veh_id in enumerate(self.vehicle_ids):
-            veh_type = vehicles.get_state(veh_id, "type")
+        for i, veh_id in enumerate(vehicle_ids):
+            veh_type = vehicles.get_type(veh_id)
             edge, pos = positions[i]
             routes.append(
                 self._vehicle(

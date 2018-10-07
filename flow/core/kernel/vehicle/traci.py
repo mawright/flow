@@ -7,6 +7,7 @@ from flow.controllers.car_following_models import SumoCarFollowingController
 from flow.controllers.rlcontroller import RLController
 from flow.controllers.lane_change_controllers import SumoLaneChangeController
 from bisect import bisect_left
+import itertools
 
 
 class TraCIVehicle(KernelVehicle):
@@ -14,11 +15,15 @@ class TraCIVehicle(KernelVehicle):
 
     """
 
-    def __init__(self, kernel_api):
+    def __init__(self,
+                 master_kernel,
+                 kernel_api,
+                 sim_params,
+                 vehicles):
         """
 
         """
-        super(KernelVehicle, self).__init__(kernel_api)
+        KernelVehicle.__init__(self, master_kernel, kernel_api, sim_params)
 
         self.__ids = []  # ids of all vehicles
         self.__human_ids = []  # ids of human-driven vehicles
@@ -33,19 +38,18 @@ class TraCIVehicle(KernelVehicle):
 
         # create a sumo_observations variable that will carry all information
         # on the state of the vehicles for a given time step
-        self.__sumo_obs = None
+        self.__sumo_obs = {}
 
         self.num_vehicles = 0  # total number of vehicles in the network
         self.num_rl_vehicles = 0  # number of rl vehicles in the network
         self.num_types = 0  # number of unique types of vehicles in the network
         self.types = []  # types of vehicles in the network
-        self.initial_speeds = []  # speed of vehicles at the start of a rollout
 
         # contains the parameters associated with each type of vehicle
-        self.type_parameters = dict()
+        self.type_parameters = vehicles.type_parameters
 
         # contain the minGap attribute of each type of vehicle
-        self.minGap = dict()
+        self.minGap = vehicles.minGap
 
         # list of vehicle ids located in each edge in the network
         self._ids_by_edge = dict()
@@ -56,13 +60,7 @@ class TraCIVehicle(KernelVehicle):
         # number of vehicles to exit the network for every time-step
         self._num_arrived = []
 
-        # simulation step size
-        self.sim_step = 0
-
-        # initial state of the vehicles class, used for serialization purposes
-        self.initial = []
-
-    def update(self):
+    def update(self, reset):
         """Update the vehicle class with data from the current time step.
 
         The following actions are performed:
@@ -98,36 +96,44 @@ class TraCIVehicle(KernelVehicle):
             else:
                 self._add_departed(veh_id, veh_type)
 
-        if env.time_counter == 0:
+        if reset:
+            self.time_counter = 0
+
             # reset all necessary values
+            self.prev_last_lc = dict()
+            for veh_id in self.get_ids():
+                self.__vehicles[veh_id]["absolute_position"] = \
+                    self.get_x_by_id(veh_id)
             for veh_id in self.__rl_ids:
                 self.__vehicles[veh_id]["last_lc"] = -float("inf")
+                self.prev_last_lc[veh_id] = -float("inf")
             self._num_departed.clear()
             self._num_arrived.clear()
-            self.sim_step = env.sim_step
         else:
+            self.time_counter += 1
             # update the "last_lc" variable
             for veh_id in self.__rl_ids:
                 prev_lane = self.get_lane(veh_id)
                 if vehicle_obs[veh_id][tc.VAR_LANE_INDEX] != \
                         prev_lane and veh_id in self.__rl_ids:
-                    self.__vehicles[veh_id]["last_lc"] = env.time_counter
+                    self.__vehicles[veh_id]["last_lc"] = self.time_counter
 
             # update the "absolute_position" variable
             for veh_id in self.__ids:
-                prev_pos = env.get_x_by_id(veh_id)
+                prev_pos = self.get_x_by_id(veh_id)
                 this_edge = vehicle_obs.get(veh_id, {}).get(tc.VAR_ROAD_ID, "")
                 this_pos = vehicle_obs.get(veh_id, {}).get(
                     tc.VAR_LANEPOSITION, -1001)
 
                 # in case the vehicle isn't in the network
                 if this_edge == "":
-                    self.__vehicles["absolute_position"][veh_id] = -1001
+                    self.__vehicles[veh_id]["absolute_position"] = -1001
                 else:
-                    change = env.scenario.get_x(this_edge, this_pos) - prev_pos
+                    change = self.master_kernel.scenario.get_x(
+                        this_edge, this_pos) - prev_pos
                     new_abs_pos = (self.get_absolute_position(veh_id) +
-                                   change) % env.scenario.length
-                    self.__vehicles["absolute_position"][veh_id] = new_abs_pos
+                                   change) % self.master_kernel.scenario.length
+                    self.__vehicles[veh_id]["absolute_position"] = new_abs_pos
 
             # updated the list of departed and arrived vehicles
             self._num_departed.append(
@@ -232,11 +238,7 @@ class TraCIVehicle(KernelVehicle):
         self.__vehicles[veh_id]["absolute_position"] = 0
 
         # set the "last_lc" parameter of the vehicle
-        self.__vehicles[veh_id]["last_lc"] = env.time_counter
-
-        # specify the initial speed
-        self.__vehicles[veh_id]["initial_speed"] = \
-            self.type_parameters[veh_type]["initial_speed"]
+        self.__vehicles[veh_id]["last_lc"] = -float("inf")
 
         # set the speed mode for the vehicle
         speed_mode = self.type_parameters[veh_type][
@@ -247,6 +249,17 @@ class TraCIVehicle(KernelVehicle):
         lc_mode = self.type_parameters[veh_type][
             "sumo_lc_params"].lane_change_mode
         self.kernel_api.vehicle.setLaneChangeMode(veh_id, lc_mode)
+
+        # get initial state info
+        self.__sumo_obs[veh_id] = dict()
+        self.__sumo_obs[veh_id][tc.VAR_ROAD_ID] = \
+            self.kernel_api.vehicle.getRoadID(veh_id)
+        self.__sumo_obs[veh_id][tc.VAR_LANEPOSITION] = \
+            self.kernel_api.vehicle.getLanePosition(veh_id)
+        self.__sumo_obs[veh_id][tc.VAR_LANE_INDEX] = \
+            self.kernel_api.vehicle.getLaneIndex(veh_id)
+        self.__sumo_obs[veh_id][tc.VAR_SPEED] = \
+            self.kernel_api.vehicle.getSpeed(veh_id)
 
         # make sure that the order of rl_ids is kept sorted
         self.__rl_ids.sort()
@@ -764,15 +777,15 @@ class TraCIVehicle(KernelVehicle):
         This includes the lane leaders/followers/headways/tailways for all
         vehicles in the network.
         """
-        edge_list = env.scenario.get_edge_list()
-        junction_list = env.scenario.get_junction_list()
+        edge_list = self.master_kernel.scenario.get_edge_list()
+        junction_list = self.master_kernel.scenario.get_junction_list()
         tot_list = edge_list + junction_list
-        num_edges = (len(env.scenario.get_edge_list()) + len(
-            env.scenario.get_junction_list()))
+        num_edges = (len(self.master_kernel.scenario.get_edge_list()) + len(
+            self.master_kernel.scenario.get_junction_list()))
 
         # maximum number of lanes in the network
-        max_lanes = max(
-            [env.scenario.num_lanes(edge_id) for edge_id in tot_list])
+        max_lanes = max([self.master_kernel.scenario.num_lanes(edge_id)
+                         for edge_id in tot_list])
 
         # Key = edge id
         # Element = list, with the ith element containing tuples with the name
@@ -853,7 +866,7 @@ class TraCIVehicle(KernelVehicle):
         this_pos = self.get_position(veh_id)
         this_edge = self.get_edge(veh_id)
         this_lane = self.get_lane(veh_id)
-        num_lanes = env.scenario.num_lanes(this_edge)
+        num_lanes = self.master_kernel.scenario.num_lanes(this_edge)
 
         # set default values for all output values
         headway = [1000] * num_lanes
@@ -926,11 +939,11 @@ class TraCIVehicle(KernelVehicle):
 
         for _ in range(num_edges):
             # break if there are no edge/lane pairs behind the current one
-            if len(env.scenario.next_edge(edge, lane)) == 0:
+            if len(self.master_kernel.scenario.next_edge(edge, lane)) == 0:
                 break
 
-            add_length += env.scenario.edge_length(edge)
-            edge, lane = env.scenario.next_edge(edge, lane)[0]
+            add_length += self.master_kernel.scenario.edge_length(edge)
+            edge, lane = self.master_kernel.scenario.next_edge(edge, lane)[0]
 
             try:
                 if len(edge_dict[edge][lane]) > 0:
@@ -970,11 +983,11 @@ class TraCIVehicle(KernelVehicle):
 
         for _ in range(num_edges):
             # break if there are no edge/lane pairs behind the current one
-            if len(env.scenario.prev_edge(edge, lane)) == 0:
+            if len(self.master_kernel.scenario.prev_edge(edge, lane)) == 0:
                 break
 
-            edge, lane = env.scenario.prev_edge(edge, lane)[0]
-            add_length += env.scenario.edge_length(edge)
+            edge, lane = self.master_kernel.scenario.prev_edge(edge, lane)[0]
+            add_length += self.master_kernel.scenario.edge_length(edge)
 
             try:
                 if len(edge_dict[edge][lane]) > 0:
@@ -990,3 +1003,112 @@ class TraCIVehicle(KernelVehicle):
                 break
 
         return tailway, follower
+
+    def apply_acceleration(self, veh_ids, acc):
+        """Apply the acceleration requested by a vehicle in sumo.
+
+        Note that, if the sumo-specified speed mode of the vehicle is not
+        "aggressive", the acceleration may be clipped by some safety velocity
+        or maximum possible acceleration.
+
+        Parameters
+        ----------
+        veh_ids: list of str
+            vehicles IDs associated with the requested accelerations
+        acc: numpy ndarray or list of float
+            requested accelerations from the vehicles
+        """
+        for i, vid in enumerate(veh_ids):
+            if acc[i] is not None:
+                this_vel = self.get_speed(vid)
+                next_vel = max([this_vel + acc[i] * self.sim_step, 0])
+                self.kernel_api.vehicle.slowDown(vid, next_vel, 1)
+
+    def apply_lane_change(self, veh_ids, direction):
+        """Apply an instantaneous lane-change to a set of vehicles.
+
+        This method also prevents vehicles from moving to lanes that do not
+        exist, and set the "last_lc" variable for RL vehicles that lane changed
+        to match the current time step, in order to assist in maintaining a
+        lane change duration for these vehicles.
+
+        Parameters
+        ----------
+        veh_ids: list of str
+            vehicles IDs associated with the requested accelerations
+        direction: list of {-1, 0, 1}
+            -1: lane change to the right
+             0: no lane change
+             1: lane change to the left
+
+        Raises
+        ------
+        ValueError
+            If any of the direction values are not -1, 0, or 1.
+        """
+        # if any of the directions are not -1, 0, or 1, raise a ValueError
+        if any(d not in [-1, 0, 1] for d in direction):
+            raise ValueError(
+                "Direction values for lane changes may only be: -1, 0, or 1.")
+
+        for i, veh_id in enumerate(veh_ids):
+            # check for no lane change
+            if direction[i] == 0:
+                continue
+
+            # compute the target lane, and clip it so vehicle don't try to lane
+            # change out of range
+            this_lane = self.get_lane(veh_id)
+            this_edge = self.get_edge(veh_id)
+            target_lane = min(
+                max(this_lane + direction[i], 0),
+                self.master_kernel.scenario.num_lanes(this_edge) - 1)
+
+            # perform the requested lane action action in TraCI
+            if target_lane != this_lane:
+                self.kernel_api.vehicle.changeLane(
+                    veh_id, int(target_lane), 100000)
+
+                if veh_id in self.get_rl_ids():
+                    self.prev_last_lc[veh_id] = \
+                        self.__vehicles[veh_id]["last_lc"]
+
+    def choose_routes(self, veh_ids, route_choices):
+        """Update the route choice of vehicles in the network.
+
+        Parameters
+        ----------
+        veh_ids: list
+            list of vehicle identifiers
+        route_choices: numpy array or list of floats
+            list of edges the vehicle wishes to traverse, starting with the
+            edge the vehicle is currently on. If a value of None is provided,
+            the vehicle does not update its route
+        """
+        for i, veh_id in enumerate(veh_ids):
+            if route_choices[i] is not None:
+                self.kernel_api.vehicle.setRoute(
+                    vehID=veh_id, edgeList=route_choices[i])
+
+    def get_x_by_id(self, veh_id):
+        """Provide a 1-D representation of the position of a vehicle.
+
+        Note: These values are only meaningful if the specify_edge_starts
+        method in the scenario is set appropriately; otherwise, a value of 0 is
+        returned for all vehicles.
+
+        Parameters
+        ----------
+        veh_id: str
+            vehicle identifier
+
+        Returns
+        -------
+        float
+            position of a vehicle relative to a certain reference.
+        """
+        if self.get_edge(veh_id) == '':
+            # occurs when a vehicle crashes is teleported for some other reason
+            return 0.
+        return self.master_kernel.scenario.get_x(
+            self.get_edge(veh_id), self.get_position(veh_id))

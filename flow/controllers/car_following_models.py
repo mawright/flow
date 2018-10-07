@@ -378,9 +378,9 @@ class IDMController(BaseController):
 
     def get_accel(self, env):
         """See parent class."""
-        v = env.vehicles.get_speed(self.veh_id)
-        lead_id = env.vehicles.get_leader(self.veh_id)
-        h = env.vehicles.get_headway(self.veh_id)
+        v = env.kernel.vehicle.get_speed(self.veh_id)
+        lead_id = env.kernel.vehicle.get_leader(self.veh_id)
+        h = env.kernel.vehicle.get_headway(self.veh_id)
 
         # negative headways may be registered by sumo at intersections/
         # junctions. Setting them to 0 causes vehicles to not move; therefore,
@@ -392,7 +392,7 @@ class IDMController(BaseController):
         if lead_id is None or lead_id == '':  # no car ahead
             s_star = 0
         else:
-            lead_vel = env.vehicles.get_speed(lead_id)
+            lead_vel = env.kernel.vehicle.get_speed(lead_id)
             s_star = self.s0 + max(
                 0, v * self.T + v * (v - lead_vel) /
                 (2 * np.sqrt(self.a * self.b)))

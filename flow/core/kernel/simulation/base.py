@@ -5,11 +5,19 @@ class KernelSimulation(object):
 
     """
 
-    def __init__(self, kernel_api):
+    def __init__(self, master_kernel, kernel_api):
         """
 
         """
+        self.master_kernel = master_kernel
         self.kernel_api = kernel_api
+
+    def simulation_step(self):
+        """
+
+        :return:
+        """
+        raise NotImplementedError
 
     def update(self):
         """
