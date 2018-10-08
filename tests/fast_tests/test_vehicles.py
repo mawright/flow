@@ -29,7 +29,6 @@ class TestVehiclesClass(unittest.TestCase):
         vehicles.add(
             "typeA",
             acceleration_controller=(IDMController, {}),
-
             speed_mode='no_collide',
             lane_change_mode="no_lat_collide")
 

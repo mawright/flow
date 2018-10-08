@@ -75,8 +75,8 @@ class LaneChangeAccelEnv(Env):
         max_decel = self.env_params.additional_params["max_decel"]
         max_accel = self.env_params.additional_params["max_accel"]
 
-        lb = [-abs(max_decel), -1] * self.vehicles.num_rl_vehicles
-        ub = [max_accel, 1] * self.vehicles.num_rl_vehicles
+        lb = [-abs(max_decel), -1] * self.k.vehicle.num_rl_vehicles
+        ub = [max_accel, 1] * self.k.vehicle.num_rl_vehicles
 
         return Box(np.array(lb), np.array(ub), dtype=np.float32)
 
@@ -86,17 +86,17 @@ class LaneChangeAccelEnv(Env):
         speed = Box(
             low=0,
             high=1,
-            shape=(self.vehicles.num_vehicles, ),
+            shape=(self.k.vehicle.num_vehicles, ),
             dtype=np.float32)
         lane = Box(
             low=0,
             high=1,
-            shape=(self.vehicles.num_vehicles, ),
+            shape=(self.k.vehicle.num_vehicles, ),
             dtype=np.float32)
         pos = Box(
             low=0.,
             high=1,
-            shape=(self.vehicles.num_vehicles, ),
+            shape=(self.k.vehicle.num_vehicles, ),
             dtype=np.float32)
         return Tuple((speed, pos, lane))
 
@@ -108,8 +108,9 @@ class LaneChangeAccelEnv(Env):
 
         # punish excessive lane changes by reducing the reward by a set value
         # every time an rl car changes lanes (10% of max reward)
-        for veh_id in self.vehicles.get_rl_ids():
-            if self.vehicles.get_state(veh_id, "last_lc") == self.time_counter:
+        for veh_id in self.k.vehicle.get_rl_ids():
+            if self.k.vehicle.get_state(veh_id, "last_lc") \
+                    == self.time_counter:
                 reward -= 0.1
 
         return reward
@@ -124,9 +125,9 @@ class LaneChangeAccelEnv(Env):
             for edge in self.scenario.get_edge_list())
 
         return np.array([[
-            self.vehicles.get_speed(veh_id) / max_speed,
-            self.get_x_by_id(veh_id) / length,
-            self.vehicles.get_lane(veh_id) / max_lanes
+            self.k.vehicle.get_speed(veh_id) / max_speed,
+            self.k.vehicle.get_x_by_id(veh_id) / length,
+            self.k.vehicle.get_lane(veh_id) / max_lanes
         ] for veh_id in self.sorted_ids])
 
     def _apply_rl_actions(self, actions):
@@ -137,28 +138,28 @@ class LaneChangeAccelEnv(Env):
         # re-arrange actions according to mapping in observation space
         sorted_rl_ids = [
             veh_id for veh_id in self.sorted_ids
-            if veh_id in self.vehicles.get_rl_ids()
+            if veh_id in self.k.vehicle.get_rl_ids()
         ]
 
         # represents vehicles that are allowed to change lanes
         non_lane_changing_veh = \
             [self.time_counter <=
              self.env_params.additional_params["lane_change_duration"]
-             + self.vehicles.get_state(veh_id, 'last_lc')
+             + self.k.vehicle.get_last_lc(veh_id)
              for veh_id in sorted_rl_ids]
         # vehicle that are not allowed to change have their directions set to 0
         direction[non_lane_changing_veh] = \
             np.array([0] * sum(non_lane_changing_veh))
 
-        self.apply_acceleration(sorted_rl_ids, acc=acceleration)
-        self.apply_lane_change(sorted_rl_ids, direction=direction)
+        self.k.vehicle.apply_acceleration(sorted_rl_ids, acc=acceleration)
+        self.k.vehicle.apply_lane_change(sorted_rl_ids, direction=direction)
 
     def additional_command(self):
         """Define which vehicles are observed for visualization purposes."""
         # specify observed vehicles
-        if self.vehicles.num_rl_vehicles > 0:
-            for veh_id in self.vehicles.get_human_ids():
-                self.vehicles.set_observed(veh_id)
+        if self.k.vehicle.num_rl_vehicles > 0:
+            for veh_id in self.k.vehicle.get_human_ids():
+                self.k.vehicle.set_observed(veh_id)
 
 
 class LaneChangeAccelPOEnv(LaneChangeAccelEnv):
@@ -204,19 +205,19 @@ class LaneChangeAccelPOEnv(LaneChangeAccelEnv):
         return Box(
             low=0,
             high=1,
-            shape=(4 * self.vehicles.num_rl_vehicles * self.num_lanes +
-                   self.vehicles.num_rl_vehicles, ),
+            shape=(4 * self.k.vehicle.num_rl_vehicles * self.num_lanes +
+                   self.k.vehicle.num_rl_vehicles, ),
             dtype=np.float32)
 
     def get_state(self):
         """See class definition."""
         obs = [
             0
-            for _ in range(4 * self.vehicles.num_rl_vehicles * self.num_lanes)
+            for _ in range(4 * self.k.vehicle.num_rl_vehicles * self.num_lanes)
         ]
 
         self.visible = []
-        for i, rl_id in enumerate(self.vehicles.get_rl_ids()):
+        for i, rl_id in enumerate(self.k.vehicle.get_rl_ids()):
             # normalizers
             max_length = self.scenario.length
             max_speed = self.scenario.max_speed
@@ -228,22 +229,22 @@ class LaneChangeAccelPOEnv(LaneChangeAccelEnv):
             vel_in_front = [0] * self.num_lanes
             vel_behind = [0] * self.num_lanes
 
-            lane_leaders = self.vehicles.get_lane_leaders(rl_id)
-            lane_followers = self.vehicles.get_lane_followers(rl_id)
-            lane_headways = self.vehicles.get_lane_headways(rl_id)
-            lane_tailways = self.vehicles.get_lane_tailways(rl_id)
+            lane_leaders = self.k.vehicle.get_lane_leaders(rl_id)
+            lane_followers = self.k.vehicle.get_lane_followers(rl_id)
+            lane_headways = self.k.vehicle.get_lane_headways(rl_id)
+            lane_tailways = self.k.vehicle.get_lane_tailways(rl_id)
             headway[0:len(lane_headways)] = lane_headways
             tailway[0:len(lane_tailways)] = lane_tailways
 
             for j, lane_leader in enumerate(lane_leaders):
                 if lane_leader != '':
                     lane_headways[j] /= max_length
-                    vel_in_front[j] = self.vehicles.get_speed(lane_leader) \
+                    vel_in_front[j] = self.k.vehicle.get_speed(lane_leader) \
                         / max_speed
             for j, lane_follower in enumerate(lane_followers):
                 if lane_follower != '':
                     lane_headways[j] /= max_length
-                    vel_behind[j] = self.vehicles.get_speed(lane_follower) \
+                    vel_behind[j] = self.k.vehicle.get_speed(lane_follower) \
                         / max_speed
 
             self.visible.extend(lane_leaders)
@@ -255,7 +256,7 @@ class LaneChangeAccelPOEnv(LaneChangeAccelEnv):
                 np.concatenate((headway, tailway, vel_in_front, vel_behind))
 
             # add the speed for the ego rl vehicle
-            obs.append(self.vehicles.get_speed(rl_id))
+            obs.append(self.k.vehicle.get_speed(rl_id))
 
             return np.array(obs)
 
@@ -263,4 +264,4 @@ class LaneChangeAccelPOEnv(LaneChangeAccelEnv):
         """Define which vehicles are observed for visualization purposes."""
         # specify observed vehicles
         for veh_id in self.visible:
-            self.vehicles.set_observed(veh_id)
+            self.k.vehicle.set_observed(veh_id)

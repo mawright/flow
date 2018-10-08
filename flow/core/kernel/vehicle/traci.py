@@ -1,5 +1,6 @@
 from flow.core.kernel.vehicle import KernelVehicle
 import traci.constants as tc
+from traci.exceptions import FatalTraCIError, TraCIException
 import numpy as np
 import collections
 import warnings
@@ -11,8 +12,9 @@ import itertools
 
 
 class TraCIVehicle(KernelVehicle):
-    """
+    """Flow kernel for the TraCI API.
 
+    Extends flow.core.kernel.vehicle.base.KernelVehicle
     """
 
     def __init__(self,
@@ -20,9 +22,7 @@ class TraCIVehicle(KernelVehicle):
                  kernel_api,
                  sim_params,
                  vehicles):
-        """
-
-        """
+        """See parent class."""
         KernelVehicle.__init__(self, master_kernel, kernel_api, sim_params)
 
         self.__ids = []  # ids of all vehicles
@@ -61,7 +61,7 @@ class TraCIVehicle(KernelVehicle):
         self._num_arrived = []
 
     def update(self, reset):
-        """Update the vehicle class with data from the current time step.
+        """See parent class.
 
         The following actions are performed:
 
@@ -265,16 +265,7 @@ class TraCIVehicle(KernelVehicle):
         self.__rl_ids.sort()
 
     def remove(self, veh_id):
-        """Remove a vehicle.
-
-        Removes all traces of the vehicle from the vehicles class and all valid
-        ID lists, and decrements the total number of vehicles in this class.
-
-        Parameters
-        ----------
-        veh_id: str
-            unique identifier of th vehicle to be removed
-        """
+        """See parent class."""
         del self.__vehicles[veh_id]
         self.__ids.remove(veh_id)
         self.num_vehicles -= 1
@@ -326,113 +317,74 @@ class TraCIVehicle(KernelVehicle):
         self.__vehicles[veh_id]["headway"] = headway
 
     def get_ids(self):
-        """Return the names of all vehicles currently in the network."""
+        """See parent class."""
         return self.__ids
 
     def get_human_ids(self):
-        """Return the names of all non-rl vehicles currently in the network."""
+        """See parent class."""
         return self.__human_ids
 
     def get_controlled_ids(self):
-        """Return the names of all flow acceleration-controlled vehicles.
-
-        This only include vehicles that are currently in the network.
-        """
+        """See parent class."""
         return self.__controlled_ids
 
     def get_controlled_lc_ids(self):
-        """Return the names of all flow lane change-controlled vehicles.
-
-        This only include vehicles that are currently in the network.
-        """
+        """See parent class."""
         return self.__controlled_lc_ids
 
     def get_rl_ids(self):
-        """Return the names of all rl-controlled vehicles in the network."""
+        """See parent class."""
         return self.__rl_ids
 
     def set_observed(self, veh_id):
-        """Add a vehicle to the list of observed vehicles."""
+        """See parent class."""
         if veh_id not in self.__observed_ids:
             self.__observed_ids.append(veh_id)
 
     def remove_observed(self, veh_id):
-        """Remove a vehicle from the list of observed vehicles."""
+        """See parent class."""
         if veh_id in self.__observed_ids:
             self.__observed_ids.remove(veh_id)
 
     def get_observed_ids(self):
-        """Return the list of observed vehicles."""
+        """See parent class."""
         return self.__observed_ids
 
     def get_ids_by_edge(self, edges):
-        """Return the names of all vehicles in the specified edge.
-
-        If no vehicles are currently in the edge, then returns an empty list.
-        """
+        """See parent class."""
         if isinstance(edges, (list, np.ndarray)):
             return sum([self.get_ids_by_edge(edge) for edge in edges], [])
         return self._ids_by_edge.get(edges, []) or []
 
     def get_inflow_rate(self, time_span):
-        """Return the inflow rate (in veh/hr) of vehicles from the network.
-
-        This value is computed over the specified **time_span** seconds.
-        """
+        """See parent class."""
         if len(self._num_departed) == 0:
             return 0
         num_inflow = self._num_departed[-int(time_span / self.sim_step):]
         return 3600 * sum(num_inflow) / (len(num_inflow) * self.sim_step)
 
     def get_outflow_rate(self, time_span):
-        """Return the outflow rate (in veh/hr) of vehicles from the network.
-
-        This value is computed over the specified **time_span** seconds.
-        """
+        """See parent class."""
         if len(self._num_arrived) == 0:
             return 0
         num_outflow = self._num_arrived[-int(time_span / self.sim_step):]
         return 3600 * sum(num_outflow) / (len(num_outflow) * self.sim_step)
 
     def get_num_arrived(self):
-        """Return the number of vehicles that arrived in the last time step."""
+        """See parent class."""
         if len(self._num_arrived) > 0:
             return self._num_arrived[-1]
         else:
             return 0
 
     def get_speed(self, veh_id, error=-1001):
-        """Return the speed of the specified vehicle.
-
-        Parameters
-        ----------
-        veh_id : str or list<str>
-            vehicle id, or list of vehicle ids
-        error : any, optional
-            value that is returned if the vehicle is not found
-
-        Returns
-        -------
-        float or list of float
-        """
+        """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_speed(vehID, error) for vehID in veh_id]
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_SPEED, error)
 
     def get_absolute_position(self, veh_id, error=-1001):
-        """Return the absolute position of the specified vehicle.
-
-        Parameters
-        ----------
-        veh_id : str or list<str>
-            vehicle id, or list of vehicle ids
-        error : any, optional
-            value that is returned if the vehicle is not found
-
-        Returns
-        -------
-        float or list of float
-        """
+        """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [
                 self.get_absolute_position(vehID, error) for vehID in veh_id
@@ -440,168 +392,55 @@ class TraCIVehicle(KernelVehicle):
         return self.__vehicles.get(veh_id, {}).get("absolute_position", error)
 
     def get_position(self, veh_id, error=-1001):
-        """Return the position of the vehicle relative to its current edge.
-
-        Parameters
-        ----------
-        veh_id : str or list<str>
-            vehicle id, or list of vehicle ids
-        error : any, optional
-            value that is returned if the vehicle is not found
-
-        Returns
-        -------
-        float or list of float
-        """
+        """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_position(vehID, error) for vehID in veh_id]
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_LANEPOSITION, error)
 
     def get_edge(self, veh_id, error=""):
-        """Return the edge the specified vehicle is currently on.
-
-        Parameters
-        ----------
-        veh_id : str or list<str>
-            vehicle id, or list of vehicle ids
-        error : any, optional
-            value that is returned if the vehicle is not found
-
-        Returns
-        -------
-        str or list of str
-        """
+        """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_edge(vehID, error) for vehID in veh_id]
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_ROAD_ID, error)
 
     def get_lane(self, veh_id, error=-1001):
-        """Return the lane index of the specified vehicle.
-
-        Parameters
-        ----------
-        veh_id : str or list<str>
-            vehicle id, or list of vehicle ids
-        error : any, optional
-            value that is returned if the vehicle is not found
-
-        Returns
-        -------
-        int or list of int
-        """
+        """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_lane(vehID, error) for vehID in veh_id]
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_LANE_INDEX, error)
 
     def get_route(self, veh_id, error=list()):
-        """Return the route of the specified vehicle.
-
-        Parameters
-        ----------
-        veh_id : str or list<str>
-            vehicle id, or list of vehicle ids
-        error : any, optional
-            value that is returned if the vehicle is not found
-
-        Returns
-        -------
-        list<str>
-
-        """
+        """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_route(vehID, error) for vehID in veh_id]
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_EDGES, error)
 
     def get_length(self, veh_id, error=-1001):
-        """Return the length of the specified vehicle.
-
-        Parameters
-        ----------
-        veh_id : str or list<str>
-            vehicle id, or list of vehicle ids
-        error : any, optional
-            value that is returned if the vehicle is not found
-
-        Returns
-        -------
-        float or list of float
-        """
+        """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_length(vehID, error) for vehID in veh_id]
         return self.__vehicles.get(veh_id, {}).get("length", error)
 
     def get_leader(self, veh_id, error=""):
-        """Return the leader of the specified vehicle.
-
-        Parameters
-        ----------
-        veh_id : str or list of str
-            vehicle id, or list of vehicle ids
-        error : any, optional
-            value that is returned if the vehicle is not found
-
-        Returns
-        -------
-        str or list of str
-        """
+        """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_leader(vehID, error) for vehID in veh_id]
         return self.__vehicles.get(veh_id, {}).get("leader", error)
 
     def get_follower(self, veh_id, error=""):
-        """Return the follower of the specified vehicle.
-
-        Parameters
-        ----------
-        veh_id : str or list of str
-            vehicle id, or list of vehicle ids
-        error : any, optional
-            value that is returned if the vehicle is not found
-
-        Returns
-        -------
-        str or list of str
-        """
+        """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_follower(vehID, error) for vehID in veh_id]
         return self.__vehicles.get(veh_id, {}).get("follower", error)
 
     def get_headway(self, veh_id, error=-1001):
-        """Return the headway of the specified vehicle(s).
-
-        Parameters
-        ----------
-        veh_id : str or list of str
-            vehicle id, or list of vehicle ids
-        error : any, optional
-            value that is returned if the vehicle is not found
-
-        Returns
-        -------
-        float or list of float
-        """
+        """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_headway(vehID, error) for vehID in veh_id]
         return self.__vehicles.get(veh_id, {}).get("headway", error)
 
     def get_last_lc(self, veh_id, error=-1001):
-        """Return the last time step a vehicle changed lanes.
-
-        Note: This value is only stored for RL vehicles. All other vehicles
-        calling this will cause a warning to be printed and their "last_lc"
-        term will be the error value.
-
-        Parameters
-        ----------
-        veh_id : str or list of str
-            vehicle id, or list of vehicle ids
-        error : any, optional
-            value that is returned if the vehicle is not found
-
-        Returns
-        -------
-        float or list of float
-        """
+        """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_headway(vehID, error) for vehID in veh_id]
 
@@ -613,39 +452,13 @@ class TraCIVehicle(KernelVehicle):
             return self.__vehicles.get(veh_id, {}).get("headway", error)
 
     def get_acc_controller(self, veh_id, error=None):
-        """Return the acceleration controller of the specified vehicle.
-
-        Parameters
-        ----------
-        veh_id : str or list<str>
-            vehicle id, or list of vehicle ids
-        error : any, optional
-            value that is returned if the vehicle is not found
-
-        Returns
-        -------
-        object
-
-        """
+        """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_acc_controller(vehID, error) for vehID in veh_id]
         return self.__vehicles.get(veh_id, {}).get("acc_controller", error)
 
     def get_lane_changing_controller(self, veh_id, error=None):
-        """Return the lane changing controller of the specified vehicle.
-
-        Parameters
-        ----------
-        veh_id : str or list<str>
-            vehicle id, or list of vehicle ids
-        error : any, optional
-            value that is returned if the vehicle is not found
-
-        Returns
-        -------
-        object
-
-        """
+        """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [
                 self.get_lane_changing_controller(vehID, error)
@@ -654,20 +467,7 @@ class TraCIVehicle(KernelVehicle):
         return self.__vehicles.get(veh_id, {}).get("lane_changer", error)
 
     def get_routing_controller(self, veh_id, error=None):
-        """Return the routing controller of the specified vehicle.
-
-        Parameters
-        ----------
-        veh_id : str or list<str>
-            vehicle id, or list of vehicle ids
-        error : any, optional
-            value that is returned if the vehicle is not found
-
-        Returns
-        -------
-        object
-
-        """
+        """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [
                 self.get_routing_controller(vehID, error) for vehID in veh_id
@@ -679,23 +479,7 @@ class TraCIVehicle(KernelVehicle):
         self.__vehicles[veh_id]["lane_headways"] = lane_headways
 
     def get_lane_headways(self, veh_id, error=list()):
-        """Return the lane headways of the specified vehicles.
-
-        This includes the headways between the specified vehicle and the
-        vehicle immediately ahead of it in all lanes.
-
-        Parameters
-        ----------
-        veh_id : str or list<str>
-            vehicle id, or list of vehicle ids
-        error : any, optional
-            value that is returned if the vehicle is not found
-
-        Returns
-        -------
-        list<float>
-
-        """
+        """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_lane_headways(vehID, error) for vehID in veh_id]
         return self.__vehicles.get(veh_id, {}).get("lane_headways", error)
@@ -705,20 +489,7 @@ class TraCIVehicle(KernelVehicle):
         self.__vehicles[veh_id]["lane_leaders"] = lane_leaders
 
     def get_lane_leaders(self, veh_id, error=list()):
-        """Return the leaders for the specified vehicle in all lanes.
-
-        Parameters
-        ----------
-        veh_id : str or list<str>
-            vehicle id, or list of vehicle ids
-        error : any, optional
-            value that is returned if the vehicle is not found
-
-        Returns
-        -------
-        list<float>
-
-        """
+        """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_lane_leaders(vehID, error) for vehID in veh_id]
 
@@ -727,23 +498,7 @@ class TraCIVehicle(KernelVehicle):
         self.__vehicles[veh_id]["lane_tailways"] = lane_tailways
 
     def get_lane_tailways(self, veh_id, error=list()):
-        """Return the lane tailways of the specified vehicle.
-
-        This includes the headways between the specified vehicle and the
-        vehicle immediately behind it in all lanes.
-
-        Parameters
-        ----------
-        veh_id : str or list<str>
-            vehicle id, or list of vehicle ids
-        error : any, optional
-            value that is returned if the vehicle is not found
-
-        Returns
-        -------
-        list<float>
-
-        """
+        """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_lane_tailways(vehID, error) for vehID in veh_id]
         return self.__vehicles.get(veh_id, {}).get("lane_tailways", error)
@@ -753,20 +508,7 @@ class TraCIVehicle(KernelVehicle):
         self.__vehicles[veh_id]["lane_followers"] = lane_followers
 
     def get_lane_followers(self, veh_id, error=list()):
-        """Return the followers for the specified vehicle in all lanes.
-
-        Parameters
-        ----------
-        veh_id : str or list<str>
-            vehicle id, or list of vehicle ids
-        error : list, optional
-            value that is returned if the vehicle is not found
-
-        Returns
-        -------
-        list<str>
-
-        """
+        """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_lane_followers(vehID, error) for vehID in veh_id]
         return self.__vehicles.get(veh_id, {}).get("lane_followers", error)
@@ -1005,19 +747,7 @@ class TraCIVehicle(KernelVehicle):
         return tailway, follower
 
     def apply_acceleration(self, veh_ids, acc):
-        """Apply the acceleration requested by a vehicle in sumo.
-
-        Note that, if the sumo-specified speed mode of the vehicle is not
-        "aggressive", the acceleration may be clipped by some safety velocity
-        or maximum possible acceleration.
-
-        Parameters
-        ----------
-        veh_ids: list of str
-            vehicles IDs associated with the requested accelerations
-        acc: numpy ndarray or list of float
-            requested accelerations from the vehicles
-        """
+        """See parent class."""
         for i, vid in enumerate(veh_ids):
             if acc[i] is not None:
                 this_vel = self.get_speed(vid)
@@ -1025,27 +755,7 @@ class TraCIVehicle(KernelVehicle):
                 self.kernel_api.vehicle.slowDown(vid, next_vel, 1)
 
     def apply_lane_change(self, veh_ids, direction):
-        """Apply an instantaneous lane-change to a set of vehicles.
-
-        This method also prevents vehicles from moving to lanes that do not
-        exist, and set the "last_lc" variable for RL vehicles that lane changed
-        to match the current time step, in order to assist in maintaining a
-        lane change duration for these vehicles.
-
-        Parameters
-        ----------
-        veh_ids: list of str
-            vehicles IDs associated with the requested accelerations
-        direction: list of {-1, 0, 1}
-            -1: lane change to the right
-             0: no lane change
-             1: lane change to the left
-
-        Raises
-        ------
-        ValueError
-            If any of the direction values are not -1, 0, or 1.
-        """
+        """See parent class."""
         # if any of the directions are not -1, 0, or 1, raise a ValueError
         if any(d not in [-1, 0, 1] for d in direction):
             raise ValueError(
@@ -1074,41 +784,48 @@ class TraCIVehicle(KernelVehicle):
                         self.__vehicles[veh_id]["last_lc"]
 
     def choose_routes(self, veh_ids, route_choices):
-        """Update the route choice of vehicles in the network.
-
-        Parameters
-        ----------
-        veh_ids: list
-            list of vehicle identifiers
-        route_choices: numpy array or list of floats
-            list of edges the vehicle wishes to traverse, starting with the
-            edge the vehicle is currently on. If a value of None is provided,
-            the vehicle does not update its route
-        """
+        """See parent class."""
         for i, veh_id in enumerate(veh_ids):
             if route_choices[i] is not None:
                 self.kernel_api.vehicle.setRoute(
                     vehID=veh_id, edgeList=route_choices[i])
 
     def get_x_by_id(self, veh_id):
-        """Provide a 1-D representation of the position of a vehicle.
-
-        Note: These values are only meaningful if the specify_edge_starts
-        method in the scenario is set appropriately; otherwise, a value of 0 is
-        returned for all vehicles.
-
-        Parameters
-        ----------
-        veh_id: str
-            vehicle identifier
-
-        Returns
-        -------
-        float
-            position of a vehicle relative to a certain reference.
-        """
+        """See parent class."""
         if self.get_edge(veh_id) == '':
             # occurs when a vehicle crashes is teleported for some other reason
             return 0.
         return self.master_kernel.scenario.get_x(
             self.get_edge(veh_id), self.get_position(veh_id))
+
+    def update_vehicle_colors(self):
+        """See parent class.
+
+        The colors of all vehicles are updated as follows:
+        - red: autonomous (rl) vehicles
+        - white: unobserved human-driven vehicles
+        - cyan: observed human-driven vehicles
+        """
+        for veh_id in self.get_rl_ids():
+            try:
+                # color rl vehicles red
+                self.kernel_api.vehicle.setColor(vehID=veh_id,
+                                                 color=(255, 0, 0, 255))
+            except (FatalTraCIError, TraCIException):
+                pass
+
+        for veh_id in self.get_human_ids():
+            try:
+                if veh_id in self.get_observed_ids():
+                    # color observed human-driven vehicles cyan
+                    color = (0, 255, 255, 255)
+                else:
+                    # color unobserved human-driven vehicles white
+                    color = (255, 255, 255, 255)
+                self.kernel_api.vehicle.setColor(vehID=veh_id, color=color)
+            except (FatalTraCIError, TraCIException):
+                pass
+
+        # clear the list of observed vehicles
+        for veh_id in self.get_observed_ids():
+            self.remove_observed(veh_id)

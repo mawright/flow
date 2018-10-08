@@ -27,8 +27,8 @@ def desired_velocity(env, fail=False):
     fail: bool
         specifies if any crash or other failure occurred in the system
     """
-    vel = np.array(env.vehicles.get_speed(env.vehicles.get_ids()))
-    num_vehicles = env.vehicles.num_vehicles
+    vel = np.array(env.k.vehicle.get_speed(env.k.vehicle.get_ids()))
+    num_vehicles = env.k.vehicle.num_vehicles
 
     if any(vel < -100) or fail:
         return 0.
@@ -44,7 +44,7 @@ def desired_velocity(env, fail=False):
 
 
 def reward_density(env):
-    return env.vehicles.get_num_arrived() / env.sim_step
+    return env.k.vehicle.get_num_arrived() / env.sim_step
 
 
 def max_edge_velocity(env, edge_list, fail=False):
@@ -60,8 +60,8 @@ def max_edge_velocity(env, edge_list, fail=False):
     fail: bool
         specifies if any crash or other failure occurred in the system
     """
-    veh_ids = env.vehicles.get_ids_by_edge(edge_list)
-    vel = np.array(env.vehicles.get_speed(veh_ids))
+    veh_ids = env.k.vehicle.get_ids_by_edge(edge_list)
+    vel = np.array(env.k.vehicle.get_speed(veh_ids))
     num_vehicles = len(veh_ids)
 
     if any(vel < -100) or fail:
@@ -89,7 +89,7 @@ def rl_forward_progress(env, gain=0.1):
     gain: float
         specifies how much to reward the RL vehicles
     """
-    rl_velocity = env.vehicles.get_speed(env.vehicles.get_rl_ids())
+    rl_velocity = env.k.vehicle.get_speed(env.k.vehicle.get_rl_ids())
     rl_norm_vel = np.linalg.norm(rl_velocity, 1)
     return rl_norm_vel * gain
 
@@ -113,7 +113,7 @@ def min_delay(env):
         state of the system.
     """
 
-    vel = np.array(env.vehicles.get_speed(env.vehicles.get_ids()))
+    vel = np.array(env.k.vehicle.get_speed(env.k.vehicle.get_ids()))
 
     vel = vel[vel >= -1e-6]
     v_top = max(
@@ -136,7 +136,7 @@ def min_delay_unscaled(env):
         state of the system.
     """
 
-    vel = np.array(env.vehicles.get_speed(env.vehicles.get_ids()))
+    vel = np.array(env.k.vehicle.get_speed(env.k.vehicle.get_ids()))
 
     vel = vel[vel >= -1e-6]
     v_top = max(
@@ -145,7 +145,7 @@ def min_delay_unscaled(env):
     time_step = env.sim_step
 
     cost = time_step * sum((v_top - vel) / v_top)
-    return cost / len(env.vehicles.get_ids())
+    return cost / len(env.k.vehicle.get_ids())
 
 
 def penalize_tl_changes(actions, gain=1):
@@ -170,8 +170,7 @@ def penalize_headway_variance(vehicles,
     Parameters
     ----------
     vehicles: flow.core.vehicles.Vehicles type
-        contains the state of all vehicles in the network (generally
-        self.vehicles)
+        contains the state of all vehicles in the network
     vids: list <str>
         list of ids for vehicles
     normalization: float, optional
@@ -210,10 +209,10 @@ def punish_small_rl_headways(env,
         used to allow exponential punishing of smaller headways
     """
     headway_penalty = 0
-    for veh_id in env.vehicles.get_rl_ids():
-        if env.vehicles.get_headway(veh_id) < headway_threshold:
+    for veh_id in env.k.vehicle.get_rl_ids():
+        if env.k.vehicle.get_headway(veh_id) < headway_threshold:
             headway_penalty += \
-                (((headway_threshold - env.vehicles.get_headway(veh_id)) /
+                (((headway_threshold - env.k.vehicle.get_headway(veh_id)) /
                   headway_threshold) ** penalty_exponent) * penalty_gain
 
     # return max_headway_penalty - headway_penalty
@@ -235,8 +234,8 @@ def punish_rl_lane_changes(env, penalty=1):
         penalty imposed on the reward function for any rl lane change action
     """
     total_lane_change_penalty = 0
-    for veh_id in env.vehicles.get_rl_ids():
-        if env.vehicles.get_state(veh_id, "last_lc") == env.timer:
+    for veh_id in env.k.vehicle.get_rl_ids():
+        if env.k.vehicle.get_state(veh_id, "last_lc") == env.timer:
             total_lane_change_penalty -= penalty
 
     return total_lane_change_penalty
@@ -268,8 +267,8 @@ def punish_queues_in_lane(env, edge, lane, penalty_gain=1, penalty_exponent=1):
     """
     # IDs of all vehicles in passed-in lane
     lane_ids = [
-        veh_id for veh_id in env.vehicles.get_ids_by_edge(edge)
-        if env.vehicles.get_lane(veh_id) == lane
+        veh_id for veh_id in env.k.vehicle.get_ids_by_edge(edge)
+        if env.k.vehicle.get_lane(veh_id) == lane
     ]
 
     return -1 * (len(lane_ids)**penalty_exponent) * penalty_gain
@@ -293,11 +292,11 @@ def reward_rl_opening_headways(env, reward_gain=0.1, reward_exponent=1):
         Reward value
     """
     total_reward = 0
-    for rl_id in env.vehicles.get_rl_ids():
-        follower_id = env.vehicles.get_follower(rl_id)
+    for rl_id in env.k.vehicle.get_rl_ids():
+        follower_id = env.k.vehicle.get_follower(rl_id)
         if not follower_id:
             continue
-        follower_headway = env.vehicles.get_headway(follower_id)
+        follower_headway = env.k.vehicle.get_headway(follower_id)
         if follower_headway < 0:
             print('negative follower headway of:', follower_headway)
             print('rl id:', rl_id)

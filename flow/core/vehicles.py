@@ -1,8 +1,7 @@
 """Contains the vehicles class."""
 
-from flow.controllers.car_following_models import SumoCarFollowingController
-from flow.controllers.rlcontroller import RLController
-from flow.controllers.lane_change_controllers import SumoLaneChangeController
+from flow.controllers import SumoCarFollowingController, RLController, \
+    SumoLaneChangeController
 from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 import collections
 
@@ -18,22 +17,12 @@ class Vehicles:
     def __init__(self):
         """Instantiate the base vehicle class."""
         self.ids = []  # ids of all vehicles
-        self.__human_ids = []  # ids of human-driven vehicles
-        self.__controlled_ids = []  # ids of flow-controlled vehicles
-        self.__controlled_lc_ids = []  # ids of flow lc-controlled vehicles
-        self.__rl_ids = []  # ids of rl-controlled vehicles
-        self.__observed_ids = []  # ids of the observed vehicles
 
         # vehicles: Key = Vehicle ID, Value = Dictionary describing the vehicle
         # Ordered dictionary used to keep neural net inputs in order
         self.__vehicles = collections.OrderedDict()
 
-        # create a sumo_observations variable that will carry all information
-        # on the state of the vehicles for a given time step
-        self.__sumo_obs = None
-
         self.num_vehicles = 0  # total number of vehicles in the network
-        self.num_rl_vehicles = 0  # number of rl vehicles in the network
         self.num_types = 0  # number of unique types of vehicles in the network
         self.types = []  # types of vehicles in the network
 
@@ -42,18 +31,6 @@ class Vehicles:
 
         # contain the minGap attribute of each type of vehicle
         self.minGap = dict()
-
-        # list of vehicle ids located in each edge in the network
-        self._ids_by_edge = dict()
-
-        # number of vehicles that entered the network for every time-step
-        self._num_departed = []
-
-        # number of vehicles to exit the network for every time-step
-        self._num_arrived = []
-
-        # simulation step size
-        self.sim_step = 0
 
         # initial state of the vehicles class, used for serialization purposes
         self.initial = []
@@ -107,8 +84,9 @@ class Vehicles:
                 and acceleration_controller[0] != RLController:
             type_params["minGap"] = 0.0
 
-        # this dict will be used when trying to introduce new vehicles into
-        # the network via a flow
+        # This dict will be used when trying to introduce new vehicles into
+        # the network via a Flow. It is passed to the vehicle kernel object
+        # during environment instantiation.
         self.type_parameters[veh_id] = \
             {"acceleration_controller": acceleration_controller,
              "lane_change_controller": lane_change_controller,
@@ -133,7 +111,9 @@ class Vehicles:
                 sumo_lc_params
         })
 
-        # this is used to return the actual headways from the vehicles class
+        # This is used to return the actual headways from the vehicles class.
+        # It is passed to the vehicle kernel class during environment
+        # instantiation.
         self.minGap[veh_id] = type_params["minGap"]
 
         for i in range(num_vehicles):
@@ -147,42 +127,8 @@ class Vehicles:
             # specify the type
             self.__vehicles[v_id]["type"] = veh_id
 
-            # specify the acceleration controller class
-            self.__vehicles[v_id]["acc_controller"] = \
-                acceleration_controller[0](
-                    v_id,
-                    sumo_cf_params=sumo_car_following_params,
-                    **acceleration_controller[1])
-
-            # specify the lane-changing controller class
-            self.__vehicles[v_id]["lane_changer"] = \
-                lane_change_controller[0](veh_id=v_id,
-                                          **lane_change_controller[1])
-
-            # specify the routing controller class
-            if routing_controller is not None:
-                self.__vehicles[v_id]["router"] = \
-                    routing_controller[0](veh_id=v_id,
-                                          router_params=routing_controller[1])
-            else:
-                self.__vehicles[v_id]["router"] = None
-
-            # check if the vehicle is human-driven or autonomous
-            if acceleration_controller[0] == RLController:
-                self.__rl_ids.append(v_id)
-            else:
-                self.__human_ids.append(v_id)
-
-                # check if the vehicle's lane-changing / acceleration actions
-                # are controlled by sumo or not.
-                if acceleration_controller[0] != SumoCarFollowingController:
-                    self.__controlled_ids.append(v_id)
-                if lane_change_controller[0] != SumoLaneChangeController:
-                    self.__controlled_lc_ids.append(v_id)
-
         # update the variables for the number of vehicles in the network
         self.num_vehicles = len(self.ids)
-        self.num_rl_vehicles = len(self.__rl_ids)
 
         # increase the number of unique types of vehicles in the network, and
         # add the type to the list of types

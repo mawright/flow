@@ -58,10 +58,7 @@ class SumoExperiment:
             the scenario object the simulator will run
         """
         self.name = scenario.name
-        self.num_vehicles = env.vehicles.num_vehicles
         self.env = env
-        self.vehicles = scenario.vehicles
-        self.cfg = scenario.cfg
 
         logging.info(" Starting experiment" + str(self.name) + " at " +
                      str(datetime.datetime.utcnow()))
@@ -106,7 +103,7 @@ class SumoExperiment:
             logging.info("Iter #" + str(i))
             ret = 0
             ret_list = []
-            vehicles = self.env.kernel.vehicle
+            vehicles = self.env.k.vehicle
             state = self.env.reset()
             for j in range(num_steps):
                 state, reward, done, _ = self.env.step(rl_actions(state))

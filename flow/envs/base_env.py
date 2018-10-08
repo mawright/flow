@@ -79,7 +79,6 @@ class Env(gym.Env, Serializable):
             # 1.0 works with stress_test_start 10k times
             time.sleep(1.0 * int(time_stamp[-6:]) / 1e6)
         self.sumo_params.port = sumolib.miscutils.getFreeSocketPort()
-        self.vehicles = scenario.vehicles
         self.traffic_lights = scenario.traffic_lights
         # time_counter: number of steps taken since the start of a rollout
         self.time_counter = 0
@@ -108,7 +107,7 @@ class Env(gym.Env, Serializable):
         self.traci_connection = None
 
         # store the initial state of the vehicles class (for restarting sumo)
-        self.initial_vehicles = deepcopy(self.vehicles)
+        self.initial_vehicles = deepcopy(scenario.vehicles)
 
         # colors used to distinguish between types of vehicles in the network
         self.colors = {}
@@ -123,15 +122,15 @@ class Env(gym.Env, Serializable):
         self.start_sumo()
 
         # create the Flow kernel
-        self.kernel = Kernel(simulator="traci",
-                             kernel_api=self.traci_connection,
-                             sim_params=self.sumo_params,
-                             vehicles=self.vehicles,
-                             traffic_lights=self.traffic_lights,
-                             scenario=self.scenario)
+        self.k = Kernel(simulator="traci",
+                        kernel_api=self.traci_connection,
+                        sim_params=self.sumo_params,
+                        vehicles=scenario.vehicles,
+                        traffic_lights=self.traffic_lights,
+                        scenario=self.scenario)
 
         # store the initial vehicle ids
-        self.initial_ids = deepcopy(self.vehicles.ids)
+        self.initial_ids = deepcopy(scenario.vehicles.ids)
 
         self.setup_initial_state()
 
@@ -266,9 +265,7 @@ class Env(gym.Env, Serializable):
     def setup_initial_state(self):
         """Return information on the initial state of vehicles in the network.
 
-        This information is to be used upon reset. This method also adds this
-        information to the self.vehicles class and starts a subscription with
-        sumo to collect state information each step.
+        This information is to be used upon reset.
 
         Returns
         -------
@@ -281,11 +278,11 @@ class Env(gym.Env, Serializable):
             vehicle in a sumo network with traci)
         """
         # store the network observations in the vehicles class
-        self.kernel.vehicle.update(reset=True)
+        self.k.vehicle.update(reset=True)
 
         # check to make sure all vehicles have been spawned
         num_spawned_veh = self.traci_connection.simulation.getDepartedNumber()
-        if num_spawned_veh < self.vehicles.num_vehicles:
+        if num_spawned_veh < self.k.vehicle.num_vehicles:
             logging.error("Not enough vehicles have spawned! Bad start?")
             exit()
 
@@ -296,8 +293,8 @@ class Env(gym.Env, Serializable):
             self.traffic_lights.add(tl_id)
 
         # save the initial state. This is used in the _reset function
-        for veh_id in self.kernel.vehicle.get_ids():
-            type_id = self.vehicles.get_type(veh_id)
+        for veh_id in self.k.vehicle.get_ids():
+            type_id = self.scenario.vehicles.get_type(veh_id)
             lane_pos = self.traci_connection.vehicle.getLanePosition(veh_id)
             lane = self.traci_connection.vehicle.getLaneIndex(veh_id)
             speed = self.traci_connection.vehicle.getSpeed(veh_id)
@@ -342,53 +339,53 @@ class Env(gym.Env, Serializable):
             self.step_counter += 1
 
             # perform acceleration actions for controlled human-driven vehicles
-            if len(self.kernel.vehicle.get_controlled_ids()) > 0:
+            if len(self.k.vehicle.get_controlled_ids()) > 0:
                 accel = []
-                for veh_id in self.kernel.vehicle.get_controlled_ids():
-                    accel_contr = self.kernel.vehicle.get_acc_controller(
-                        veh_id)
+                for veh_id in self.k.vehicle.get_controlled_ids():
+                    accel_contr = self.k.vehicle.get_acc_controller(veh_id)
                     action = accel_contr.get_action(self)
                     accel.append(action)
-                self.kernel.vehicle.apply_acceleration(
-                    self.kernel.vehicle.get_controlled_ids(), accel)
+                self.k.vehicle.apply_acceleration(
+                    self.k.vehicle.get_controlled_ids(), accel)
 
             # perform lane change actions for controlled human-driven vehicles
-            if len(self.kernel.vehicle.get_controlled_lc_ids()) > 0:
+            if len(self.k.vehicle.get_controlled_lc_ids()) > 0:
                 direction = []
-                for veh_id in self.kernel.vehicle.get_controlled_lc_ids():
-                    lc_ctl = self.kernel.vehicle.get_lane_changing_controller(
+                for veh_id in self.k.vehicle.get_controlled_lc_ids():
+                    lc_ctl = self.k.vehicle.get_lane_changing_controller(
                         veh_id)
                     target_lane = lc_ctl.get_action(self)
                     direction.append(target_lane)
-                self.kernel.vehicle.apply_lane_change(
-                    self.kernel.vehicle.get_controlled_lc_ids(),
+                self.k.vehicle.apply_lane_change(
+                    self.k.vehicle.get_controlled_lc_ids(),
                     direction=direction)
 
             # perform (optionally) routing actions for all vehicle in the
             # network, including rl and sumo-controlled vehicles
             routing_ids = []
             routing_actions = []
-            for veh_id in self.kernel.vehicle.get_ids():
-                if self.kernel.vehicle.get_routing_controller(veh_id) \
+            for veh_id in self.k.vehicle.get_ids():
+                if self.k.vehicle.get_routing_controller(veh_id) \
                         is not None:
                     routing_ids.append(veh_id)
-                    route_contr = self.kernel.vehicle.get_routing_controller(
+                    route_contr = self.k.vehicle.get_routing_controller(
                         veh_id)
                     routing_actions.append(route_contr.choose_route(self))
 
-            self.kernel.vehicle.choose_routes(routing_ids, routing_actions)
+            self.k.vehicle.choose_routes(routing_ids, routing_actions)
 
             self.apply_rl_actions(rl_actions)
 
             self.additional_command()
 
-            self.kernel.simulation.simulation_step()
+            self.k.simulation.simulation_step()
 
             # store new observations in the vehicles and traffic lights class
-            self.kernel.update(reset=False)
+            self.k.update(reset=False)
 
             # update the colors of vehicles
-            self.update_vehicle_colors()
+            if self.sumo_params.render:
+                self.k.vehicle.update_vehicle_colors()
 
             # collect list of sorted vehicle ids
             self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
@@ -458,8 +455,6 @@ class Env(gym.Env, Serializable):
             self.step_counter = 0
             # issue a random seed to induce randomness into the next rollout
             self.sumo_params.seed = random.randint(0, 1e5)
-            # modify the vehicles class to match initial data
-            self.vehicles = deepcopy(self.initial_vehicles)
             # restart the sumo instance
             self.restart_sumo(self.sumo_params)
 
@@ -499,15 +494,15 @@ class Env(gym.Env, Serializable):
             try:
                 self.traci_connection.vehicle.remove(veh_id)
                 self.traci_connection.vehicle.unsubscribe(veh_id)
-                self.kernel.vehicle.remove(veh_id)
+                self.k.vehicle.remove(veh_id)
             except (FatalTraCIError, TraCIException):
                 print("Error during start: {}".format(traceback.format_exc()))
                 pass
 
         # clear all vehicles from the network and the vehicles class
         # FIXME (ev, ak) this is weird and shouldn't be necessary
-        for veh_id in list(self.kernel.vehicle.get_ids()):
-            self.kernel.vehicle.remove(veh_id)
+        for veh_id in list(self.k.vehicle.get_ids()):
+            self.k.vehicle.remove(veh_id)
             try:
                 self.traci_connection.vehicle.remove(veh_id)
                 self.traci_connection.vehicle.unsubscribe(veh_id)
@@ -540,13 +535,14 @@ class Env(gym.Env, Serializable):
                     departSpeed=str(speed))
 
         # advance the simulation in the simulator by one step
-        self.kernel.simulation.simulation_step()
+        self.k.simulation.simulation_step()
 
         # update the information in each kernel to match the current state
-        self.kernel.update(reset=True)
+        self.k.update(reset=True)
 
         # update the colors of vehicles
-        self.update_vehicle_colors()
+        if self.sumo_params.render:
+            self.k.vehicle.update_vehicle_colors()
 
         # collect list of sorted vehicle ids
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
@@ -612,49 +608,11 @@ class Env(gym.Env, Serializable):
         """
         if self.env_params.sort_vehicles:
             sorted_ids = sorted(
-                self.kernel.vehicle.get_ids(),
-                key=self.kernel.vehicle.get_absolute_position)
+                self.k.vehicle.get_ids(),
+                key=self.k.vehicle.get_absolute_position)
             return sorted_ids, None
         else:
-            return self.kernel.vehicle.get_ids(), None
-
-    def update_vehicle_colors(self):
-        """Modify the color of vehicles if rendering is active.
-
-        The colors of all vehicles are updated as follows:
-        - red: autonomous (rl) vehicles
-        - white: unobserved human-driven vehicles
-        - cyan: observed human-driven vehicles
-        """
-        # do not change the colors of vehicles if the sumo-gui is not active
-        # (in order to avoid slow downs)
-        if not self.sumo_params.render:
-            return
-
-        for veh_id in self.kernel.vehicle.get_rl_ids():
-            try:
-                # color rl vehicles red
-                self.traci_connection.vehicle.setColor(
-                    vehID=veh_id, color=(255, 0, 0, 255))
-            except (FatalTraCIError, TraCIException):
-                pass
-
-        for veh_id in self.kernel.vehicle.get_human_ids():
-            try:
-                if veh_id in self.kernel.vehicle.get_observed_ids():
-                    # color observed human-driven vehicles cyan
-                    color = (0, 255, 255, 255)
-                else:
-                    # color unobserved human-driven vehicles white
-                    color = (255, 255, 255, 255)
-                self.traci_connection.vehicle.setColor(
-                    vehID=veh_id, color=color)
-            except (FatalTraCIError, TraCIException):
-                pass
-
-        # clear the list of observed vehicles
-        for veh_id in self.kernel.vehicle.get_observed_ids():
-            self.vehicles.remove_observed(veh_id)
+            return self.k.vehicle.get_ids(), None
 
     def get_state(self):
         """Return the state of the simulation as perceived by the RL agent.

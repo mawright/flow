@@ -9,7 +9,7 @@ from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, NetParams, \
     SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
-from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
+from flow.envs.test import TestEnv
 from flow.scenarios.figure8.figure8_scenario import Figure8Scenario, \
     ADDITIONAL_NET_PARAMS
 from flow.scenarios.figure8.gen import Figure8Generator
@@ -46,7 +46,7 @@ def figure_eight_example(render=None):
         ),
         num_vehicles=14)
 
-    env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
+    env_params = EnvParams()
 
     additional_net_params = ADDITIONAL_NET_PARAMS.copy()
     net_params = NetParams(
@@ -58,7 +58,7 @@ def figure_eight_example(render=None):
         vehicles=vehicles,
         net_params=net_params)
 
-    env = AccelEnv(env_params, sumo_params, scenario)
+    env = TestEnv(env_params, sumo_params, scenario)
 
     return SumoExperiment(env, scenario)
 

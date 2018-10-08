@@ -62,7 +62,7 @@ class AccelEnv(Env):
         return Box(
             low=-abs(self.env_params.additional_params["max_decel"]),
             high=self.env_params.additional_params["max_accel"],
-            shape=(self.vehicles.num_rl_vehicles, ),
+            shape=(self.k.vehicle.num_rl_vehicles, ),
             dtype=np.float32)
 
     @property
@@ -72,12 +72,12 @@ class AccelEnv(Env):
         speed = Box(
             low=0,
             high=1,
-            shape=(self.vehicles.num_vehicles, ),
+            shape=(self.k.vehicle.num_vehicles, ),
             dtype=np.float32)
         pos = Box(
             low=0.,
             high=1,
-            shape=(self.vehicles.num_vehicles, ),
+            shape=(self.k.vehicle.num_vehicles, ),
             dtype=np.float32)
         return Tuple((speed, pos))
 
@@ -85,14 +85,14 @@ class AccelEnv(Env):
         """See class definition."""
         sorted_rl_ids = [
             veh_id for veh_id in self.sorted_ids
-            if veh_id in self.vehicles.get_rl_ids()
+            if veh_id in self.k.vehicle.get_rl_ids()
         ]
-        self.apply_acceleration(sorted_rl_ids, rl_actions)
+        self.k.vehicle.apply_acceleration(sorted_rl_ids, rl_actions)
 
     def compute_reward(self, state, rl_actions, **kwargs):
         """See class definition."""
         if self.env_params.evaluate:
-            return np.mean(self.vehicles.get_speed(self.vehicles.get_ids()))
+            return np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids()))
         else:
             return rewards.desired_velocity(self, fail=kwargs["fail"])
 
@@ -102,13 +102,13 @@ class AccelEnv(Env):
         max_speed = self.scenario.max_speed
 
         return np.array([[
-            self.vehicles.get_speed(veh_id) / max_speed,
-            self.get_x_by_id(veh_id) / self.scenario.length
+            self.k.vehicle.get_speed(veh_id) / max_speed,
+            self.k.vehicle.get_x_by_id(veh_id) / self.scenario.length
         ] for veh_id in self.sorted_ids])
 
     def additional_command(self):
         """Define which vehicles are observed for visualization purposes."""
         # specify observed vehicles
-        if self.vehicles.num_rl_vehicles > 0:
-            for veh_id in self.vehicles.get_human_ids():
-                self.vehicles.set_observed(veh_id)
+        if self.k.vehicle.num_rl_vehicles > 0:
+            for veh_id in self.k.vehicle.get_human_ids():
+                self.k.vehicle.set_observed(veh_id)
