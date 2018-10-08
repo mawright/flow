@@ -2,6 +2,7 @@
 
 from flow.core.generator import Generator
 from lxml import etree
+from xml.etree import ElementTree
 
 E = etree.Element
 
@@ -40,3 +41,29 @@ class NetFileGenerator(Generator):
     def specify_edges(self, net_params):
         """See class definition."""
         pass
+
+    def _import_tls_from_net(filename):
+        """Import traffic lights from a configuration file.
+
+        This is a utility function for computing traffic light information. It imports a
+        network configuration file, and returns the information of the traffic lights in the file.
+
+        Returns
+        -------
+        tl_logic : TrafficLights
+
+        """
+        
+        # import the .net.xml file containing all edge/type data
+        parser = etree.XMLParser(recover=True)
+        tree = ElementTree.parse(filename, parser=parser)
+        root = tree.getroot()
+        
+        # create TrafficLights() class object to store traffic lights information from the file
+        tl_logic = TrafficLights()
+
+        for tl in root.findall('tlLogic'):
+            phases = [phase.attrib for phase in tl.findall('phase')]
+            tl_logic.add(tl.attrib['id'], tl.attrib['type'], tl.attrib['programID'], tl.attrib['offset'], phases)
+            
+        return tl_logic
