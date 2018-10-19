@@ -235,7 +235,7 @@ def punish_rl_lane_changes(env, penalty=1):
     """
     total_lane_change_penalty = 0
     for veh_id in env.k.vehicle.get_rl_ids():
-        if env.k.vehicle.get_state(veh_id, "last_lc") == env.timer:
+        if env.k.vehicle.get_last_lc(veh_id) == env.timer:
             total_lane_change_penalty -= penalty
 
     return total_lane_change_penalty

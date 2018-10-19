@@ -59,7 +59,7 @@ class TestCFMController(unittest.TestCase):
 
         test_headways = [5, 10, 15, 20, 25]
         for i, veh_id in enumerate(ids):
-            self.env.vehicles.set_headway(veh_id, test_headways[i])
+            self.env.k.vehicle.set_headway(veh_id, test_headways[i])
 
         requested_accel = [
             self.env.k.vehicle.get_acc_controller(veh_id).get_action(self.env)
@@ -108,7 +108,7 @@ class TestBCMController(unittest.TestCase):
 
         test_headways = [5, 10, 15, 20, 25]
         for i, veh_id in enumerate(ids):
-            self.env.vehicles.set_headway(veh_id, test_headways[i])
+            self.env.k.vehicle.set_headway(veh_id, test_headways[i])
 
         requested_accel = [
             self.env.k.vehicle.get_acc_controller(veh_id).get_action(self.env)
@@ -163,7 +163,7 @@ class TestOVMController(unittest.TestCase):
 
         test_headways = [0, 10, 5, 5, 5]
         for i, veh_id in enumerate(ids):
-            self.env.vehicles.set_headway(veh_id, test_headways[i])
+            self.env.k.vehicle.set_headway(veh_id, test_headways[i])
 
         requested_accel = [
             self.env.k.vehicle.get_acc_controller(veh_id).get_action(self.env)
@@ -213,7 +213,7 @@ class TestLinearOVM(unittest.TestCase):
 
         test_headways = [5, 10, 10, 15, 0]
         for i, veh_id in enumerate(ids):
-            self.env.vehicles.set_headway(veh_id, test_headways[i])
+            self.env.k.vehicle.set_headway(veh_id, test_headways[i])
 
         requested_accel = [
             self.env.k.vehicle.get_acc_controller(veh_id).get_action(self.env)
@@ -260,7 +260,7 @@ class TestIDMController(unittest.TestCase):
 
         test_headways = [10, 20, 30, 40, 50]
         for i, veh_id in enumerate(ids):
-            self.env.vehicles.set_headway(veh_id, test_headways[i])
+            self.env.k.vehicle.set_headway(veh_id, test_headways[i])
 
         requested_accel = [
             self.env.k.vehicle.get_acc_controller(veh_id).get_action(self.env)
@@ -274,7 +274,7 @@ class TestIDMController(unittest.TestCase):
         # set the perceived headway to zero
         test_headways = [0, 0, 0, 0, 0]
         for i, veh_id in enumerate(ids):
-            self.env.vehicles.set_headway(veh_id, test_headways[i])
+            self.env.k.vehicle.set_headway(veh_id, test_headways[i])
 
         # make sure the controller doesn't return a ZeroDivisionError when the
         # headway is zero

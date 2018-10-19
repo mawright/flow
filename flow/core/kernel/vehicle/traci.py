@@ -267,11 +267,15 @@ class TraCIVehicle(KernelVehicle):
     def remove(self, veh_id):
         """See parent class."""
         # remove from sumo
-        self.kernel_api.vehicle.remove(veh_id)
-        self.kernel_api.vehicle.unsubscribe(veh_id)
+        try:
+            self.kernel_api.vehicle.remove(veh_id)
+            self.kernel_api.vehicle.unsubscribe(veh_id)
+        except (FatalTraCIError, TraCIException):
+            pass
 
         # remove from the vehicles kernel
         del self.__vehicles[veh_id]
+        del self.__sumo_obs[veh_id]
         self.__ids.remove(veh_id)
         self.num_vehicles -= 1
 
@@ -497,6 +501,7 @@ class TraCIVehicle(KernelVehicle):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_lane_leaders(vehID, error) for vehID in veh_id]
+        return self.__vehicles[veh_id]["lane_leaders"]
 
     def set_lane_tailways(self, veh_id, lane_tailways):
         """Set the lane tailways of the specified vehicle."""

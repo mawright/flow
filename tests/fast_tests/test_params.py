@@ -1,5 +1,8 @@
 import unittest
 from flow.core.params import SumoLaneChangeParams, SumoCarFollowingParams
+from flow.core.vehicles import Vehicles
+from flow.controllers import IDMController, SumoCarFollowingController
+from tests.setup_scripts import ring_road_exp_setup
 import os
 
 os.environ["TEST_FLAG"] = "True"
@@ -152,6 +155,101 @@ class TestSumoLaneChangeParams(unittest.TestCase):
             float(lc_params.controller_params["lcAssertive"]), 1)
         self.assertAlmostEqual(
             float(lc_params.controller_params["lcImpatience"]), 0)
+
+
+class TestVehiclesClass(unittest.TestCase):
+    """
+    Tests various functions in the vehicles class
+    """
+
+    def test_speed_lane_change_modes(self):
+        """
+        Check to make sure vehicle class correctly specifies lane change and
+        speed modes
+        """
+        vehicles = Vehicles()
+        vehicles.add(
+            "typeA",
+            acceleration_controller=(IDMController, {}),
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode='no_collide',
+            ),
+            sumo_lc_params=SumoLaneChangeParams(
+                lane_change_mode="no_lat_collide",
+            ))
+        env, _ = ring_road_exp_setup(vehicles=vehicles)
+
+        self.assertEqual(env.k.vehicle.get_speed_mode("typeA_0"), 1)
+        self.assertEqual(env.k.vehicle.get_lane_change_mode("typeA_0"), 256)
+
+        env.terminate()
+
+        vehicles.add(
+            "typeB",
+            acceleration_controller=(IDMController, {}),
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode='aggressive',
+            ),
+            sumo_lc_params=SumoLaneChangeParams(
+                lane_change_mode="strategic",
+            ))
+        env, _ = ring_road_exp_setup(vehicles=vehicles)
+
+        self.assertEqual(env.k.vehicle.get_speed_mode("typeB_0"), 0)
+        self.assertEqual(env.k.vehicle.get_lane_change_mode("typeB_0"), 853)
+
+        env.terminate()
+
+        vehicles.add(
+            "typeC",
+            acceleration_controller=(IDMController, {}),
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode=31,
+            ),
+            sumo_lc_params=SumoLaneChangeParams(
+                lane_change_mode=277,
+            ))
+        env, _ = ring_road_exp_setup(vehicles=vehicles)
+
+        self.assertEqual(env.k.vehicle.get_speed_mode("typeC_0"), 31)
+        self.assertEqual(env.k.vehicle.get_lane_change_mode("typeC_0"), 277)
+
+        env.terminate()
+
+    def test_controlled_id_params(self):
+        """
+        Ensure that, if a vehicle is not a sumo vehicle, then minGap is set to
+        zero so that all headway values are correct.
+        """
+        # check that, if the vehicle is not a SumoCarFollowingController
+        # vehicle, then its minGap is equal to 0
+        vehicles = Vehicles()
+        vehicles.add(
+            "typeA",
+            acceleration_controller=(IDMController, {}),
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode="no_collide",
+            ),
+            sumo_lc_params=SumoLaneChangeParams(
+                lane_change_mode="no_lat_collide",
+            ))
+        self.assertEqual(vehicles.types[0]["type_params"]["minGap"], 0)
+
+        # check that, if the vehicle is a SumoCarFollowingController vehicle,
+        # then its minGap, accel, and decel are set to default
+        vehicles = Vehicles()
+        vehicles.add(
+            "typeA",
+            acceleration_controller=(SumoCarFollowingController, {}),
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode="no_collide",
+            ),
+            sumo_lc_params=SumoLaneChangeParams(
+                lane_change_mode="no_lat_collide",
+            ))
+        default_mingap = SumoCarFollowingParams().controller_params["minGap"]
+        self.assertEqual(vehicles.types[0]["type_params"]["minGap"],
+                         default_mingap)
 
 
 if __name__ == '__main__':

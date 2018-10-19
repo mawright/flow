@@ -389,7 +389,7 @@ class TrafficLightGridEnv(Env):
             # remove the vehicle
             self.traci_connection.vehicle.remove(veh_id)
             # reintroduce it at the start of the network
-            type_id = self.k.vehicle.get_state(veh_id, "type")
+            type_id = self.scenario.vehicles.get_type(veh_id)
             lane_index = self.k.vehicle.get_lane(veh_id)
             self.traci_connection.vehicle.addFull(
                 veh_id,

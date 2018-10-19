@@ -109,8 +109,7 @@ class LaneChangeAccelEnv(Env):
         # punish excessive lane changes by reducing the reward by a set value
         # every time an rl car changes lanes (10% of max reward)
         for veh_id in self.k.vehicle.get_rl_ids():
-            if self.k.vehicle.get_state(veh_id, "last_lc") \
-                    == self.time_counter:
+            if self.k.vehicle.get_last_lc(veh_id) == self.time_counter:
                 reward -= 0.1
 
         return reward

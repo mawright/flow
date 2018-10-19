@@ -109,8 +109,8 @@ class BottleneckEnv(Env):
             if p not in scenario.net_params.additional_params:
                 raise KeyError('Net parameter "{}" not supplied'.format(p))
 
-        self.num_rl = deepcopy(scenario.vehicles.num_rl_vehicles)
         super().__init__(env_params, sumo_params, scenario)
+        self.num_rl = deepcopy(self.k.vehicle.num_rl_vehicles)
         env_add_params = self.env_params.additional_params
         # tells how scaled the number of lanes are
         self.scaling = scenario.net_params.additional_params.get("scaling")
@@ -571,7 +571,7 @@ class BottleNeckAccelEnv(BottleneckEnv):
         # represents vehicles that are allowed to change lanes
         non_lane_changing_veh = \
             [self.time_counter <= self.lane_change_duration
-             + self.k.vehicle.get_state(veh_id, 'last_lc')
+             + self.k.vehicle.get_last_lc(veh_id)
              for veh_id in sorted_rl_ids]
         # vehicle that are not allowed to change have their directions set to 0
         direction[non_lane_changing_veh] = \
