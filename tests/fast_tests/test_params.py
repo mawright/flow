@@ -1,6 +1,6 @@
 import unittest
-from flow.core.params import SumoLaneChangeParams, SumoCarFollowingParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import SumoLaneChangeParams, SumoCarFollowingParams, \
+    Vehicles
 from flow.controllers import IDMController, SumoCarFollowingController
 from tests.setup_scripts import ring_road_exp_setup
 import os

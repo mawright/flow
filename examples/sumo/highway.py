@@ -2,9 +2,8 @@
 
 from flow.controllers import IDMController
 from flow.core.experiment import SumoExperiment
-from flow.core.params import SumoParams, EnvParams, \
+from flow.core.params import SumoParams, EnvParams, Vehicles, \
     NetParams, InitialConfig, InFlows
-from flow.core.vehicles import Vehicles
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.highway.gen import HighwayGenerator
 from flow.scenarios.highway.scenario import HighwayScenario, \

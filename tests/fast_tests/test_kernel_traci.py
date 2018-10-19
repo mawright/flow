@@ -3,9 +3,8 @@ import unittest
 import os
 import numpy as np
 
-from flow.core.vehicles import Vehicles
 from flow.controllers import RLController, IDMController, StaticLaneChanger
-from flow.core.params import NetParams, InitialConfig, SumoParams
+from flow.core.params import NetParams, InitialConfig, SumoParams, Vehicles
 from tests.setup_scripts import ring_road_exp_setup, highway_exp_setup
 
 os.environ["TEST_FLAG"] = "True"

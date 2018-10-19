@@ -12,9 +12,8 @@ Horizon: 750 steps
 """
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
-    InFlows, SumoCarFollowingParams
+    InFlows, SumoCarFollowingParams, Vehicles
 from flow.scenarios.merge.scenario import ADDITIONAL_NET_PARAMS
-from flow.core.vehicles import Vehicles
 from flow.controllers import SumoCarFollowingController, RLController
 
 # time horizon of a single rollout

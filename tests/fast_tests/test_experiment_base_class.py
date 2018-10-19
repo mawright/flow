@@ -2,9 +2,8 @@ import unittest
 import os
 
 from flow.core.experiment import SumoExperiment
-from flow.core.vehicles import Vehicles
 from flow.controllers import RLController, ContinuousRouter
-from flow.core.params import SumoCarFollowingParams
+from flow.core.params import SumoCarFollowingParams, Vehicles
 
 from tests.setup_scripts import ring_road_exp_setup
 import numpy as np

@@ -6,9 +6,8 @@ average speed of vehicles in the network.
 """
 from flow.controllers import IDMController, StaticLaneChanger, ContinuousRouter
 from flow.core.experiment import SumoExperiment
-from flow.core.params import SumoParams, EnvParams, NetParams, \
+from flow.core.params import SumoParams, EnvParams, NetParams, Vehicles, \
     SumoCarFollowingParams
-from flow.core.vehicles import Vehicles
 from flow.envs.test import TestEnv
 from flow.scenarios.figure8.figure8_scenario import Figure8Scenario, \
     ADDITIONAL_NET_PARAMS

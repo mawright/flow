@@ -12,8 +12,7 @@ Horizon: 1500 steps
 """
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
-    SumoCarFollowingParams
-from flow.core.vehicles import Vehicles
+    SumoCarFollowingParams, Vehicles
 from flow.controllers import IDMController, ContinuousRouter, RLController
 from flow.scenarios.figure8.figure8_scenario import ADDITIONAL_NET_PARAMS
 

@@ -5,9 +5,8 @@ This example consists of 22 IDM cars on a ring creating shockwaves.
 
 from flow.controllers import IDMController, ContinuousRouter
 from flow.core.experiment import SumoExperiment
-from flow.core.params import SumoParams, EnvParams, \
+from flow.core.params import SumoParams, EnvParams, Vehicles, \
     InitialConfig, NetParams
-from flow.core.vehicles import Vehicles
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.loop.gen import CircleGenerator
 from flow.scenarios.loop.loop_scenario import LoopScenario, \

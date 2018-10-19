@@ -10,8 +10,7 @@ from ray.tune.registry import register_env
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
-    SumoCarFollowingParams
-from flow.core.vehicles import Vehicles
+    SumoCarFollowingParams, Vehicles
 from flow.controllers import IDMController, ContinuousRouter, RLController
 from flow.scenarios.figure8.figure8_scenario import ADDITIONAL_NET_PARAMS
 

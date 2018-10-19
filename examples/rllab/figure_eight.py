@@ -9,9 +9,8 @@ from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from flow.scenarios.figure8.gen import Figure8Generator
 from flow.scenarios.figure8.figure8_scenario import Figure8Scenario
 from flow.controllers import RLController, IDMController, ContinuousRouter
-from flow.core.vehicles import Vehicles
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
-    SumoCarFollowingParams
+    SumoCarFollowingParams, Vehicles
 from rllab.envs.gym_env import GymEnv
 
 HORIZON = 1500

@@ -4,8 +4,7 @@ import os
 import urllib.request
 
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
-    SumoCarFollowingParams, SumoLaneChangeParams, InFlows
-from flow.core.vehicles import Vehicles
+    SumoCarFollowingParams, SumoLaneChangeParams, InFlows, Vehicles
 from flow.core.traffic_lights import TrafficLights
 
 from flow.core.experiment import SumoExperiment

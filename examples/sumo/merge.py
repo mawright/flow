@@ -5,9 +5,8 @@ convective instability, with perturbations propagating upstream from the merge
 point before exiting the network.
 """
 
-from flow.core.params import SumoParams, EnvParams, \
+from flow.core.params import SumoParams, EnvParams, Vehicles, \
     NetParams, InitialConfig, InFlows, SumoCarFollowingParams
-from flow.core.vehicles import Vehicles
 from flow.core.experiment import SumoExperiment
 from flow.scenarios.merge.gen import MergeGenerator
 from flow.scenarios.merge.scenario import MergeScenario, \

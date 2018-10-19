@@ -13,8 +13,8 @@ from ray.tune.registry import register_env
 
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
+    Vehicles
 from flow.controllers import RLController, IDMController, ContinuousRouter
 
 # time horizon of a single rollout

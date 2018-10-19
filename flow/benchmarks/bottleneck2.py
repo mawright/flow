@@ -12,9 +12,8 @@ Horizon: 1000 steps
 """
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
-    InFlows, SumoLaneChangeParams, SumoCarFollowingParams
+    InFlows, SumoLaneChangeParams, SumoCarFollowingParams, Vehicles
 from flow.core.traffic_lights import TrafficLights
-from flow.core.vehicles import Vehicles
 from flow.controllers import RLController, ContinuousRouter
 
 # time horizon of a single rollout

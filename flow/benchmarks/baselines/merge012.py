@@ -4,9 +4,8 @@ Baseline is no AVs.
 """
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
-    InFlows, SumoCarFollowingParams
+    InFlows, SumoCarFollowingParams, Vehicles
 from flow.scenarios.merge.scenario import ADDITIONAL_NET_PARAMS
-from flow.core.vehicles import Vehicles
 from flow.core.experiment import SumoExperiment
 from flow.controllers import SumoCarFollowingController
 from flow.scenarios.merge.scenario import MergeScenario

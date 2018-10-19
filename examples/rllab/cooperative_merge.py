@@ -14,8 +14,7 @@ from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from flow.controllers import RLController, IDMController, \
     SumoLaneChangeController, ContinuousRouter
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
-    SumoCarFollowingParams, SumoLaneChangeParams
-from flow.core.vehicles import Vehicles
+    SumoCarFollowingParams, SumoLaneChangeParams, Vehicles
 from flow.scenarios.loop_merge.gen import TwoLoopOneMergingGenerator
 from flow.scenarios.loop_merge.scenario import TwoLoopsOneMergingScenario, \
     ADDITIONAL_NET_PARAMS

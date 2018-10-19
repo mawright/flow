@@ -4,8 +4,7 @@ Bottleneck in which the actions are specifying a desired velocity
 in a segment of space
 """
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
-    InFlows, SumoCarFollowingParams, SumoLaneChangeParams
-from flow.core.vehicles import Vehicles
+    InFlows, SumoCarFollowingParams, SumoLaneChangeParams, Vehicles
 from flow.core.traffic_lights import TrafficLights
 
 from flow.scenarios.bottleneck.gen import BottleneckGenerator

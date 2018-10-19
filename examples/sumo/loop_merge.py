@@ -4,8 +4,7 @@ from flow.controllers import IDMController, SumoLaneChangeController, \
     ContinuousRouter
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
-    SumoCarFollowingParams, SumoLaneChangeParams
-from flow.core.vehicles import Vehicles
+    SumoCarFollowingParams, SumoLaneChangeParams, Vehicles
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.loop_merge.scenario import \
     TwoLoopsOneMergingScenario, ADDITIONAL_NET_PARAMS

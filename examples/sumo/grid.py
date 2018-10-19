@@ -1,8 +1,8 @@
 """Grid example."""
 from flow.controllers.routing_controllers import GridRouter
 from flow.core.experiment import SumoExperiment
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
+    Vehicles
 from flow.core.traffic_lights import TrafficLights
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.grid.gen import SimpleGridGenerator
