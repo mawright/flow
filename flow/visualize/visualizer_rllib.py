@@ -135,8 +135,8 @@ if __name__ == "__main__":
         done = False
         ret = 0
         for _ in range(env_params.horizon):
-            vehicles = env.vehicles
-            vel.append(np.mean(vehicles.get_speed(vehicles.get_ids())))
+            vehicle = env.k.vehicle
+            vel.append(np.mean(vehicle.get_speed(vehicle.get_ids())))
             action = agent.compute_action(state)
             state, reward, done, _ = env.step(action)
             ret += reward

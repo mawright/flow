@@ -266,6 +266,11 @@ class TraCIVehicle(KernelVehicle):
 
     def remove(self, veh_id):
         """See parent class."""
+        # remove from sumo
+        self.kernel_api.vehicle.remove(veh_id)
+        self.kernel_api.vehicle.unsubscribe(veh_id)
+
+        # remove from the vehicles kernel
         del self.__vehicles[veh_id]
         self.__ids.remove(veh_id)
         self.num_vehicles -= 1

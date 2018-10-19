@@ -76,7 +76,7 @@ class BaseLaneChangeController:
 
         Parameters
         ----------
-        env: Env type
+        env: flow.envs.base_env.Env
             state of the environment at the current time step
         target_lane: int
             requested target lane by the controller
@@ -87,7 +87,7 @@ class BaseLaneChangeController:
             the safe target lane (requested target lane if action is safe,
             current lane if the action is not)
         """
-        current_lane = env.vehicles.get_lane(self.veh_id)
+        current_lane = env.k.vehicle.get_lane(self.veh_id)
 
         # if no lane change is being performed, there is no need to check for
         # safety
@@ -105,23 +105,23 @@ class BaseLaneChangeController:
         # if there is only one vehicle in the environment, or there are no
         # vehicles in the target lane, then lane changing to the target lane
         # is safe
-        if (lead_id is None) or (env.vehicles.num_vehicles == 1):
+        if (lead_id is None) or (env.k.vehicle.num_vehicles == 1):
             return target_lane
 
-        lead_pos = env.get_x_by_id(lead_id)
-        lead_length = env.vehicles.get_length(lead_id)
+        lead_pos = env.k.vehicle.get_x_by_id(lead_id)
+        lead_length = env.k.vehicle.get_length(lead_id)
 
-        trail_pos = env.get_x_by_id(trail_id)
-        trail_vel = env.vehicles.get_speed(trail_id)
+        trail_pos = env.k.vehicle.get_x_by_id(trail_id)
+        trail_vel = env.k.vehicle.get_speed(trail_id)
 
-        this_pos = env.get_x_by_id(self.veh_id)
-        this_vel = env.vehicles.get_speed(self.veh_id)
-        this_length = env.vehicles.get_length(self.veh_id)
+        this_pos = env.k.vehicle.get_x_by_id(self.veh_id)
+        this_vel = env.k.vehicle.get_speed(self.veh_id)
+        this_length = env.k.vehicle.get_length(self.veh_id)
 
         lead_gap = (lead_pos - this_pos) % env.scenario.length - lead_length
         trail_gap = (this_pos - trail_pos) % env.scenario.length - this_length
 
-        time_step = env.time_step
+        time_step = env.sim_step
 
         max_acc = env.env_params.max_acc
         max_trail_vel = trail_vel + max_acc * time_step

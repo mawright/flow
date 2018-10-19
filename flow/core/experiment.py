@@ -103,11 +103,11 @@ class SumoExperiment:
             logging.info("Iter #" + str(i))
             ret = 0
             ret_list = []
-            vehicles = self.env.k.vehicle
+            vehicle = self.env.k.vehicle
             state = self.env.reset()
             for j in range(num_steps):
                 state, reward, done, _ = self.env.step(rl_actions(state))
-                vel[j] = np.mean(vehicles.get_speed(vehicles.get_ids()))
+                vel[j] = np.mean(vehicle.get_speed(vehicle.get_ids()))
                 ret += reward
                 ret_list.append(reward)
                 if done:

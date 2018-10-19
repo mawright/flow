@@ -42,8 +42,8 @@ if __name__ == "__main__":
     unwrapped_env = env._wrapped_env.env.unwrapped
 
     # Recreate experiment params
-    tot_cars = unwrapped_env.vehicles.num_vehicles
-    rl_cars = unwrapped_env.vehicles.num_rl_vehicles
+    tot_cars = unwrapped_env.k.vehicle.num_vehicles
+    rl_cars = unwrapped_env.k.vehicle.num_rl_vehicles
     max_path_length = int(env.horizon)
     flat_obs = env._wrapped_env.observation_space.flat_dim
     obs_vars = unwrapped_env.obs_var_labels or []

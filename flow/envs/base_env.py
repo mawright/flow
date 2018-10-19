@@ -134,6 +134,7 @@ class Env(gym.Env, Serializable):
 
         self.setup_initial_state()
 
+    # TODO(ak): move to simulation kernel
     def restart_sumo(self, sumo_params, render=None):
         """Restart an already initialized sumo instance.
 
@@ -163,7 +164,7 @@ class Env(gym.Env, Serializable):
         self.start_sumo()
         self.setup_initial_state()
 
-    def start_sumo(self):
+    def start_sumo(self):  # TODO(ak): move to simulation kernel
         """Start a sumo instance.
 
         Uses the configuration files created by the generator class to
@@ -281,24 +282,30 @@ class Env(gym.Env, Serializable):
         self.k.vehicle.update(reset=True)
 
         # check to make sure all vehicles have been spawned
-        num_spawned_veh = self.traci_connection.simulation.getDepartedNumber()
-        if num_spawned_veh < self.k.vehicle.num_vehicles:
+        if len(self.initial_ids) < self.k.vehicle.num_vehicles:
             logging.error("Not enough vehicles have spawned! Bad start?")
             exit()
 
+        # TODO(ak): move to traffic light kernel
         # add missing traffic lights in the list of traffic light ids
         tls_ids = self.traci_connection.trafficlight.getIDList()
 
+        # TODO(ak): move to traffic light kernel
         for tl_id in list(set(tls_ids) - set(self.traffic_lights.get_ids())):
             self.traffic_lights.add(tl_id)
 
         # save the initial state. This is used in the _reset function
         for veh_id in self.k.vehicle.get_ids():
             type_id = self.scenario.vehicles.get_type(veh_id)
+            # TODO(ak): remove traci_connection
             lane_pos = self.traci_connection.vehicle.getLanePosition(veh_id)
+            # TODO(ak): remove traci_connection
             lane = self.traci_connection.vehicle.getLaneIndex(veh_id)
+            # TODO(ak): remove traci_connection
             speed = self.traci_connection.vehicle.getSpeed(veh_id)
+            # TODO(ak): remove traci_connection
             route_id = self.traci_connection.vehicle.getRouteID(veh_id)
+            # TODO(ak): remove traci_connection
             pos = self.traci_connection.vehicle.getPosition(veh_id)
 
             self.initial_state[veh_id] = (type_id, route_id, lane, lane_pos,
@@ -488,24 +495,18 @@ class Env(gym.Env, Serializable):
 
             self.initial_state = deepcopy(initial_state)
 
-        # # clear all vehicles from the network and the vehicles class
-
+        # clear all vehicles from the network and the vehicles class
         for veh_id in self.traci_connection.vehicle.getIDList():
             try:
-                self.traci_connection.vehicle.remove(veh_id)
-                self.traci_connection.vehicle.unsubscribe(veh_id)
                 self.k.vehicle.remove(veh_id)
             except (FatalTraCIError, TraCIException):
                 print("Error during start: {}".format(traceback.format_exc()))
-                pass
 
         # clear all vehicles from the network and the vehicles class
         # FIXME (ev, ak) this is weird and shouldn't be necessary
         for veh_id in list(self.k.vehicle.get_ids()):
-            self.k.vehicle.remove(veh_id)
             try:
-                self.traci_connection.vehicle.remove(veh_id)
-                self.traci_connection.vehicle.unsubscribe(veh_id)
+                self.k.vehicle.remove(veh_id)
             except (FatalTraCIError, TraCIException):
                 print("Error during start: {}".format(traceback.format_exc()))
 
