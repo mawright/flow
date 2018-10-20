@@ -12,8 +12,8 @@ from flow.controllers.car_following_models import IDMController
 from flow.controllers.lane_change_controllers import SumoLaneChangeController
 from flow.controllers.routing_controllers import ContinuousRouter, GridRouter
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
-    InFlows, SumoCarFollowingParams, SumoLaneChangeParams, Vehicles
-from flow.core.traffic_lights import TrafficLights
+    InFlows, SumoCarFollowingParams, SumoLaneChangeParams, Vehicles, \
+    TrafficLights
 from flow.envs.green_wave_env import GreenWaveTestEnv
 from flow.envs.loop.loop_accel import AccelEnv
 from flow.scenarios.bottleneck.gen import BottleneckGenerator

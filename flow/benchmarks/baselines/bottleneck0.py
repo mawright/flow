@@ -4,8 +4,8 @@ Baseline is no AVs.
 """
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
-    InFlows, SumoLaneChangeParams, SumoCarFollowingParams, Vehicles
-from flow.core.traffic_lights import TrafficLights
+    InFlows, SumoLaneChangeParams, SumoCarFollowingParams, Vehicles, \
+    TrafficLights
 from flow.controllers import ContinuousRouter
 from flow.envs.bottleneck_env import DesiredVelocityEnv
 from flow.core.experiment import SumoExperiment

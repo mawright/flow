@@ -2,7 +2,7 @@
 from flow.core.kernel.simulation import TraCISimulation
 # from flow.core.kernel.scenario import TraCIScenario
 from flow.core.kernel.vehicle import TraCIVehicle
-# from flow.core.kernel.traffic_light import TraCITrafficLight
+from flow.core.kernel.traffic_light import TraCITrafficLight
 
 
 class Kernel(object):
@@ -46,8 +46,7 @@ class Kernel(object):
                  kernel_api,
                  sim_params,
                  scenario,
-                 vehicles,
-                 traffic_lights):
+                 vehicles):
         """Instantiate a Flow kernel object.
 
         Parameters
@@ -65,9 +64,7 @@ class Kernel(object):
             # self.scenario = TraCIScenario(self, kernel_api, scenario)
             self.scenario = scenario
             self.vehicle = TraCIVehicle(self, kernel_api, sim_params, vehicles)
-            # self.traffic_light = TraCITrafficLight(self, kernel_api,
-            #                                        traffic_lights)
-            self.traffic_light = traffic_lights
+            self.traffic_light = TraCITrafficLight(self, kernel_api)
         else:
             raise ValueError('Simulator type "{}" is not valid.'.
                              format(simulator))
@@ -83,4 +80,4 @@ class Kernel(object):
         # self.scenario.update()
         # self.simulation.update()
         self.vehicle.update(reset)
-        # self.traffic_light.update()
+        self.traffic_light.update()

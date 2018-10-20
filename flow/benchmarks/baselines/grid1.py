@@ -4,8 +4,7 @@ Baseline is an actuated traffic light provided by SUMO.
 """
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
-    InFlows, SumoCarFollowingParams, Vehicles
-from flow.core.traffic_lights import TrafficLights
+    InFlows, SumoCarFollowingParams, Vehicles, TrafficLights
 from flow.controllers import SumoCarFollowingController, GridRouter
 from flow.envs.green_wave_env import PO_TrafficLightGridEnv
 from flow.core.experiment import SumoExperiment

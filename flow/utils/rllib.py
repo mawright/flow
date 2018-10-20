@@ -7,8 +7,8 @@ import json
 from copy import deepcopy
 
 from flow.core.params import SumoLaneChangeParams, SumoCarFollowingParams, \
-    SumoParams, InitialConfig, EnvParams, NetParams, InFlows, Vehicles
-from flow.core.traffic_lights import TrafficLights
+    SumoParams, InitialConfig, EnvParams, NetParams, InFlows, Vehicles, \
+    TrafficLights
 
 
 class FlowParamsEncoder(json.JSONEncoder):

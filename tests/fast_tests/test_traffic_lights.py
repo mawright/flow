@@ -2,8 +2,8 @@ import unittest
 import os
 
 from tests.setup_scripts import ring_road_exp_setup, grid_mxn_exp_setup
-from flow.core.params import NetParams, Vehicles, SumoCarFollowingParams
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import NetParams, Vehicles, SumoCarFollowingParams, \
+    TrafficLights
 from flow.core.experiment import SumoExperiment
 from flow.controllers.routing_controllers import GridRouter
 from flow.controllers.car_following_models import IDMController
@@ -44,7 +44,7 @@ class TestUpdateGetState(unittest.TestCase):
         self.env.reset()
         self.env.step([])
 
-        state = self.env.traffic_lights.get_state("top")
+        state = self.env.k.traffic_light.get_state("top")
 
         self.assertEqual(state, "G")
 
@@ -69,7 +69,7 @@ class TestUpdateGetState(unittest.TestCase):
         self.env.reset()
         self.env.step([])
 
-        state = self.env.traffic_lights.get_state("top")
+        state = self.env.k.traffic_light.get_state("top")
 
         self.assertEqual(state, "GG")
 
@@ -109,14 +109,13 @@ class TestSetState(unittest.TestCase):
         self.env.reset()
 
         # set all states to something
-        self.env.traffic_lights.set_state(
-            node_id="top", env=self.env, state="rY")
+        self.env.k.traffic_light.set_state(node_id="top", state="rY")
 
         # run a new step
         self.env.step([])
 
         # check the new values
-        state = self.env.traffic_lights.get_state("top")
+        state = self.env.k.traffic_light.get_state("top")
 
         self.assertEqual(state, "rY")
 
@@ -125,14 +124,14 @@ class TestSetState(unittest.TestCase):
         self.env.reset()
 
         # set all state of lane 1 to something
-        self.env.traffic_lights.set_state(
-            node_id="top", env=self.env, state="R", link_index=1)
+        self.env.k.traffic_light.set_state(
+            node_id="top", state="R", link_index=1)
 
         # run a new step
         self.env.step([])
 
         # check the new values
-        state = self.env.traffic_lights.get_state("top")
+        state = self.env.k.traffic_light.get_state("top")
 
         self.assertEqual(state[1], "R")
 
@@ -342,23 +341,26 @@ class TestCustomization(unittest.TestCase):
         # Check that the phases occur for the correct amount of time
         for i in range(self.green * sim_multiplier - 1):
             # This is because env.reset() takes 1 step
-            self.assertEqual(self.env.traffic_lights.get_state("top"), "G")
+            self.assertEqual(self.env.k.traffic_light.get_state("top"), "G")
             self.env.step([])
         for i in range(self.yellow * sim_multiplier):
-            self.assertEqual(self.env.traffic_lights.get_state("top"), "y")
+            self.assertEqual(self.env.k.traffic_light.get_state("top"), "y")
             self.env.step([])
         for i in range(self.red * sim_multiplier):
-            self.assertEqual(self.env.traffic_lights.get_state("top"), "r")
+            self.assertEqual(self.env.k.traffic_light.get_state("top"), "r")
             self.env.step([])
         for i in range(3):
             for _ in range(self.green * sim_multiplier):
-                self.assertEqual(self.env.traffic_lights.get_state("top"), "G")
+                self.assertEqual(self.env.k.traffic_light.get_state("top"),
+                                 "G")
                 self.env.step([])
             for _ in range(self.yellow * sim_multiplier):
-                self.assertEqual(self.env.traffic_lights.get_state("top"), "y")
+                self.assertEqual(self.env.k.traffic_light.get_state("top"),
+                                 "y")
                 self.env.step([])
             for _ in range(self.red * sim_multiplier):
-                self.assertEqual(self.env.traffic_lights.get_state("top"), "r")
+                self.assertEqual(self.env.k.traffic_light.get_state("top"),
+                                 "r")
                 self.env.step([])
 
 

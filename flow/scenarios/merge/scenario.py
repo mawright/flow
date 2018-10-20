@@ -1,8 +1,7 @@
 """Contains the merge scenario class."""
 
 from flow.scenarios.base_scenario import Scenario
-from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import InitialConfig, TrafficLights
 from flow.scenarios.merge.gen import INFLOW_EDGE_LEN
 
 ADDITIONAL_NET_PARAMS = {

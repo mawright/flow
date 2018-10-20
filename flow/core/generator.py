@@ -119,13 +119,14 @@ class Generator(Serializable):
         nodes = self.specify_nodes(net_params)
 
         # add traffic lights to the nodes
-        for n_id in traffic_lights.get_ids():
+        tl_ids = list(traffic_lights.get_properties().keys())
+        for n_id in tl_ids:
             indx = next(i for i, nd in enumerate(nodes) if nd["id"] == n_id)
             nodes[indx]["type"] = "traffic_light"
 
         # for nodes that have traffic lights that haven't been added
         for node in nodes:
-            if node["id"] not in traffic_lights.get_ids() \
+            if node["id"] not in tl_ids \
                     and node.get("type", None) == "traffic_light":
                 traffic_lights.add(node["id"])
 
@@ -247,7 +248,8 @@ class Generator(Serializable):
             add.append(E("route", id="route%s" % edge, edges=" ".join(route)))
 
         # add (optionally) the traffic light properties to the .add.xml file
-        if traffic_lights.num_traffic_lights > 0:
+        num_traffic_lights = len(list(traffic_lights.get_properties().keys()))
+        if num_traffic_lights > 0:
             if traffic_lights.baseline:
                 tl_params = traffic_lights.actuated_default()
                 tl_type = str(tl_params["tl_type"])

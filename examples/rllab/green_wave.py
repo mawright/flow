@@ -5,9 +5,8 @@ from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from rllab.envs.gym_env import GymEnv
 
-from flow.core.traffic_lights import TrafficLights
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
-    InFlows, Vehicles
+    InFlows, Vehicles, TrafficLights
 from flow.core.params import SumoCarFollowingParams
 
 from flow.controllers import SumoCarFollowingController, GridRouter

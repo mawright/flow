@@ -1,8 +1,7 @@
 """Contains the ring road scenario class."""
 
 from flow.scenarios.base_scenario import Scenario
-from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import InitialConfig, TrafficLights
 
 ADDITIONAL_NET_PARAMS = {
     # length of the ring road

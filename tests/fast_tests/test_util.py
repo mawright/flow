@@ -4,10 +4,9 @@ import os
 import json
 import collections
 
-from flow.core.traffic_lights import TrafficLights
 from flow.controllers import IDMController, ContinuousRouter, RLController
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
-    InFlows, SumoCarFollowingParams, Vehicles
+    InFlows, SumoCarFollowingParams, Vehicles, TrafficLights
 from flow.core.util import emission_to_csv
 from flow.utils.flow_warnings import deprecation_warning
 from flow.utils.registry import make_create_env

@@ -12,8 +12,7 @@ try:
 except ImportError:
     Serializable = object
 
-from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import InitialConfig, TrafficLights
 
 VEHICLE_LENGTH = 5  # length of vehicles in the network, in meters
 

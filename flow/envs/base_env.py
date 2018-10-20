@@ -79,7 +79,6 @@ class Env(gym.Env, Serializable):
             # 1.0 works with stress_test_start 10k times
             time.sleep(1.0 * int(time_stamp[-6:]) / 1e6)
         self.sumo_params.port = sumolib.miscutils.getFreeSocketPort()
-        self.traffic_lights = scenario.traffic_lights
         # time_counter: number of steps taken since the start of a rollout
         self.time_counter = 0
         # step_counter: number of total steps taken
@@ -126,7 +125,6 @@ class Env(gym.Env, Serializable):
                         kernel_api=self.traci_connection,
                         sim_params=self.sumo_params,
                         vehicles=scenario.vehicles,
-                        traffic_lights=self.traffic_lights,
                         scenario=self.scenario)
 
         # store the initial vehicle ids
@@ -286,30 +284,15 @@ class Env(gym.Env, Serializable):
             logging.error("Not enough vehicles have spawned! Bad start?")
             exit()
 
-        # TODO(ak): move to traffic light kernel
-        # add missing traffic lights in the list of traffic light ids
-        tls_ids = self.traci_connection.trafficlight.getIDList()
-
-        # TODO(ak): move to traffic light kernel
-        for tl_id in list(set(tls_ids) - set(self.traffic_lights.get_ids())):
-            self.traffic_lights.add(tl_id)
-
         # save the initial state. This is used in the _reset function
         for veh_id in self.k.vehicle.get_ids():
             type_id = self.scenario.vehicles.get_type(veh_id)
-            # TODO(ak): remove traci_connection
-            lane_pos = self.traci_connection.vehicle.getLanePosition(veh_id)
-            # TODO(ak): remove traci_connection
-            lane = self.traci_connection.vehicle.getLaneIndex(veh_id)
-            # TODO(ak): remove traci_connection
-            speed = self.traci_connection.vehicle.getSpeed(veh_id)
-            # TODO(ak): remove traci_connection
-            route_id = self.traci_connection.vehicle.getRouteID(veh_id)
-            # TODO(ak): remove traci_connection
-            pos = self.traci_connection.vehicle.getPosition(veh_id)
+            pos = self.k.vehicle.get_position(veh_id)
+            lane = self.k.vehicle.get_lane(veh_id)
+            speed = self.k.vehicle.get_speed(veh_id)
+            route_id = "route" + self.k.vehicle.get_edge(veh_id)
 
-            self.initial_state[veh_id] = (type_id, route_id, lane, lane_pos,
-                                          speed, pos)
+            self.initial_state[veh_id] = (type_id, route_id, lane, pos, speed)
 
     def step(self, rl_actions):
         """Advance the environment by one step.
@@ -512,7 +495,7 @@ class Env(gym.Env, Serializable):
 
         # reintroduce the initial vehicles to the network
         for veh_id in self.initial_ids:
-            type_id, route_id, lane_index, lane_pos, speed, pos = \
+            type_id, route_id, lane_index, pos, speed = \
                 self.initial_state[veh_id]
 
             try:
@@ -521,7 +504,7 @@ class Env(gym.Env, Serializable):
                     route_id,
                     typeID=str(type_id),
                     departLane=str(lane_index),
-                    departPos=str(lane_pos),
+                    departPos=str(pos),
                     departSpeed=str(speed))
             except (FatalTraCIError, TraCIException):
                 # if a vehicle was not removed in the first attempt, remove it
@@ -532,7 +515,7 @@ class Env(gym.Env, Serializable):
                     route_id,
                     typeID=str(type_id),
                     departLane=str(lane_index),
-                    departPos=str(lane_pos),
+                    departPos=str(pos),
                     departSpeed=str(speed))
 
         # advance the simulation in the simulator by one step

@@ -7,15 +7,20 @@ class TraCITrafficLight(KernelTrafficLight):
 
     """
 
-    def __init__(self, kernel_api):
+    def __init__(self, master_kernel, kernel_api):
         """
 
         """
-        super(KernelTrafficLight, self).__init__()
+        KernelTrafficLight.__init__(self, master_kernel, kernel_api)
 
-        self.__tls = None
+        self.__tls = dict()  # contains current time step traffic light data
+        self.__tls_properties = dict()  # traffic light xml properties
 
+        # names of nodes with traffic lights
         self.__ids = kernel_api.trafficlight.getIDList()
+
+        # number of traffic light nodes
+        self.num_traffic_lights = len(self.__ids)
 
         # subscribe the traffic light signal data
         for node_id in self.__ids:
