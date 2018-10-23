@@ -78,6 +78,6 @@ class Kernel(object):
         subscription information.
         """
         # self.scenario.update()
-        # self.simulation.update()
+        self.simulation.update()
         self.vehicle.update(reset)
         self.traffic_light.update()

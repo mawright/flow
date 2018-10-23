@@ -21,4 +21,9 @@ class TraCISimulation(KernelSimulation):
         ])
 
     def simulation_step(self):
+        """See parent class."""
         self.kernel_api.simulationStep()
+
+    def update(self):
+        """See parent class."""
+        pass

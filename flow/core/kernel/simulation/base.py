@@ -13,9 +13,9 @@ class KernelSimulation(object):
         self.kernel_api = kernel_api
 
     def simulation_step(self):
-        """
+        """Advance the simulation by one step.
 
-        :return:
+        This is done in most cases by calling a relevant simulator API method.
         """
         raise NotImplementedError
 

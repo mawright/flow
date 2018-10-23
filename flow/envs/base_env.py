@@ -108,9 +108,6 @@ class Env(gym.Env, Serializable):
         # store the initial state of the vehicles class (for restarting sumo)
         self.initial_vehicles = deepcopy(scenario.vehicles)
 
-        # colors used to distinguish between types of vehicles in the network
-        self.colors = {}
-
         # contains the subprocess.Popen instance used to start traci
         self.sumo_proc = None
 
@@ -394,7 +391,7 @@ class Env(gym.Env, Serializable):
         self.state = np.asarray(self.get_state()).T
 
         # collect observation new state associated with action
-        next_observation = np.copy(self.state)
+        next_observation = self.state.copy()
 
         # compute the reward
         reward = self.compute_reward(self.state, rl_actions, fail=crash)
