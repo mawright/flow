@@ -50,13 +50,13 @@ class Scenario(Serializable):
             Class for generating configuration and net files with placed
             vehicles, e.g. CircleGenerator
         vehicles : Vehicles type
-            see flow/core/vehicles.py
+            see flow/core/kernel/vehicle/base.py
         net_params : NetParams type
             see flow/core/params.py
         initial_config : InitialConfig type
             see flow/core/params.py
         traffic_lights : flow.core.traffic_lights.TrafficLights type
-            see flow/core/traffic_lights.py
+            see flow/corek/kernel/traffic_light/base.py
         """
         # Invoke serializable if using rllab
         if Serializable is not object:
