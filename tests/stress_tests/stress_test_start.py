@@ -3,9 +3,7 @@ from flow.controllers import IDMController, ContinuousRouter
 from flow.core.params import SumoParams, EnvParams, Vehicles, \
     InitialConfig, NetParams
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.loop.gen import CircleGenerator
-from flow.scenarios.loop.loop_scenario import LoopScenario, \
-    ADDITIONAL_NET_PARAMS
+from flow.scenarios.loop import LoopScenario, ADDITIONAL_NET_PARAMS
 import ray
 
 
@@ -30,7 +28,6 @@ def start():
 
     scenario = LoopScenario(
         name="sugiyama",
-        generator_class=CircleGenerator,
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config)

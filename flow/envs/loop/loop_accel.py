@@ -89,7 +89,7 @@ class AccelEnv(Env):
         ]
         self.k.vehicle.apply_acceleration(sorted_rl_ids, rl_actions)
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
         if self.env_params.evaluate:
             return np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids()))

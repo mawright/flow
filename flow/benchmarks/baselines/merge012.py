@@ -5,11 +5,9 @@ Baseline is no AVs.
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows, SumoCarFollowingParams, Vehicles
-from flow.scenarios.merge.scenario import ADDITIONAL_NET_PARAMS
+from flow.scenarios.merge import MergeScenario, ADDITIONAL_NET_PARAMS
 from flow.core.experiment import SumoExperiment
 from flow.controllers import SumoCarFollowingController
-from flow.scenarios.merge.scenario import MergeScenario
-from flow.scenarios.merge.gen import MergeGenerator
 from flow.envs.merge import WaveAttenuationMergePOEnv
 import numpy as np
 
@@ -92,7 +90,6 @@ def merge_baseline(num_runs, render=True):
     )
 
     scenario = MergeScenario(name="merge",
-                             generator_class=MergeGenerator,
                              vehicles=vehicles,
                              net_params=net_params,
                              initial_config=initial_config)

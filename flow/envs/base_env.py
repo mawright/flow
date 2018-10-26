@@ -100,7 +100,7 @@ class Env(gym.Env, Serializable):
         # the available_routes variable contains a dictionary of routes
         # vehicles can traverse; to be used when routes need to be chosen
         # dynamically
-        self.available_routes = self.scenario.generator.rts
+        self.available_routes = self.scenario.rts
 
         # TraCI connection used to communicate with sumo
         self.traci_connection = None
@@ -162,7 +162,7 @@ class Env(gym.Env, Serializable):
     def start_sumo(self):  # TODO(ak): move to simulation kernel
         """Start a sumo instance.
 
-        Uses the configuration files created by the generator class to
+        Uses the configuration files created by the scenario class to
         initialize a sumo instance. Also initializes a traci connection to
         interface with sumo from Python.
         """
@@ -394,7 +394,7 @@ class Env(gym.Env, Serializable):
         next_observation = self.state.copy()
 
         # compute the reward
-        reward = self.compute_reward(self.state, rl_actions, fail=crash)
+        reward = self.compute_reward(rl_actions, fail=crash)
 
         return next_observation, reward, crash, {}
 
@@ -635,7 +635,7 @@ class Env(gym.Env, Serializable):
         """
         raise NotImplementedError
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """Reward function for the RL agent(s).
 
         MUST BE implemented in new environments.
@@ -643,8 +643,6 @@ class Env(gym.Env, Serializable):
 
         Parameters
         ----------
-        state: numpy ndarray
-            state of all the vehicles in the simulation
         rl_actions: numpy ndarray
             actions performed by rl vehicles
         kwargs: dict

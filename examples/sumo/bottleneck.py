@@ -3,8 +3,7 @@ from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     InFlows, SumoLaneChangeParams, SumoCarFollowingParams, Vehicles, \
     TrafficLights
 
-from flow.scenarios.bottleneck.gen import BottleneckGenerator
-from flow.scenarios.bottleneck.scenario import BottleneckScenario
+from flow.scenarios.bottleneck import BottleneckScenario
 from flow.controllers import SumoLaneChangeController, ContinuousRouter
 from flow.envs.bottleneck_env import BottleneckEnv
 from flow.core.experiment import SumoExperiment
@@ -98,7 +97,6 @@ def bottleneck_example(flow_rate, horizon, render=None):
 
     scenario = BottleneckScenario(
         name="bay_bridge_toll",
-        generator_class=BottleneckGenerator,
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,
