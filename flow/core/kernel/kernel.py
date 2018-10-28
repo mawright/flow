@@ -77,7 +77,16 @@ class Kernel(object):
         "traci" simulator uses the ``update`` method to collect and store
         subscription information.
         """
-        # self.scenario.update()
+        self.scenario.update()
         self.simulation.update()
         self.vehicle.update(reset)
         self.traffic_light.update()
+
+    def close(self):
+        """
+
+        """
+        self.scenario.close()
+        # self.simulation.close()
+        # self.vehicle.close()
+        # self.traffic_light.close()

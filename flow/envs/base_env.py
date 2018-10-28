@@ -669,7 +669,7 @@ class Env(gym.Env, Serializable):
 
     def _close(self):
         self.traci_connection.close()
-        self.scenario.close()
+        self.k.close()
 
     def teardown_sumo(self):
         """Kill the sumo subprocess instance."""
