@@ -28,7 +28,7 @@ HORIZON = 600
 # number of rollouts per training iteration
 N_ROLLOUTS = 20
 # number of parallel workers
-N_CPUS = 2
+N_CPUS = 3
 
 # inflow rate at the highway
 FLOW_RATE = 2000
@@ -139,12 +139,11 @@ if __name__ == "__main__":
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
     config["num_workers"] = N_CPUS
-    config["timesteps_per_batch"] = HORIZON * N_ROLLOUTS
+    config["train_batch_size"] = HORIZON * N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [32, 32, 32]})
     config["use_gae"] = True
     config["lambda"] = 0.97
-    config["sgd_batchsize"] = min(16 * 1024, config["timesteps_per_batch"])
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 10
     config["horizon"] = HORIZON
@@ -172,6 +171,6 @@ if __name__ == "__main__":
             "stop": {
                 "training_iteration": 200,
             },
-            "repeat": 3,
+            "num_samples": 3,
         },
     })

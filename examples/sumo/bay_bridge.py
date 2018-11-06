@@ -47,9 +47,9 @@ def bay_bridge_example(render=None,
         speed_mode="all_checks",
     )
     sumo_lc_params = SumoLaneChangeParams(
-        lcAssertive=20,
-        lcPushy=0.8,
-        lcSpeedGain=4.0,
+        lc_assertive=20,
+        lc_pushy=0.8,
+        lc_speed_gain=4.0,
         model="LC2013",
         lane_change_mode="no_lat_collide",
         # lcKeepRight=0.8

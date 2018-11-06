@@ -35,7 +35,7 @@ def merge_example(render=None):
         render=True,
         emission_path="./data/",
         sim_step=0.2,
-        restart_instance=True)
+        restart_instance=False)
 
     if render is not None:
         sumo_params.render = render
