@@ -5,7 +5,7 @@ class KernelVehicle(object):
     """Flow vehicle kernel.
 
     This kernel sub-class is used to interact with the simulator with regards
-    to all state-dependent components. Specifically, this class contains
+    to all vehicle-dependent components. Specifically, this class contains
     methods for:
 
     * Interacting with the simulator: This includes apply acceleration, lane
@@ -46,7 +46,7 @@ class KernelVehicle(object):
         master_kernel : flow.core.kernel.Kernel
             the higher level kernel (used to call methods from other
             sub-kernels)
-        kernel_api : object
+        kernel_api : any
             an API that may be used to interact with the simulator
         sim_params : flow.core.params.SumoParams  # FIXME: make ambiguous
             simulation-specific parameters
@@ -329,7 +329,7 @@ class KernelVehicle(object):
 
         Parameters
         ----------
-        veh_id : str or list<str>
+        veh_id : str or list of str
             vehicle id, or list of vehicle ids
         error : any, optional
             value that is returned if the vehicle is not found
@@ -429,7 +429,7 @@ class KernelVehicle(object):
 
         Parameters
         ----------
-        veh_id : str or list<str>
+        veh_id : str or list of str
             vehicle id, or list of vehicle ids
         error : any, optional
             value that is returned if the vehicle is not found

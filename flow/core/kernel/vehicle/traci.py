@@ -70,6 +70,12 @@ class TraCIVehicle(KernelVehicle):
           explicitly defined by flow, e.g. "absolute_position".
         * If vehicles exit the network, they are removed from the vehicles
           class, and newly departed vehicles are introduced to the class.
+
+        Parameters
+        ----------
+        reset : bool
+            specifies whether the simulator was reset in the last simulation
+            step
         """
         vehicle_obs = self.kernel_api.vehicle.getSubscriptionResults()
         sim_obs = self.kernel_api.simulation.getSubscriptionResults()

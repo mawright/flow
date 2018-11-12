@@ -11,14 +11,14 @@ class Kernel(object):
     The kernel contains four different subclasses for distinguishing between
     the various components of a traffic simulator.
 
-    - simulation: controls starting, loading, saving, advancing, and resetting
+    * simulation: controls starting, loading, saving, advancing, and resetting
       a simulation in Flow (see flow/core/kernel/simulation/base.py)
-    - scenario: stores network-specific information (see
+    * scenario: stores network-specific information (see
       flow/core/kernel/scenario/base.py)
-    - vehicle: stores and regularly updates vehicle-specific information. At
+    * vehicle: stores and regularly updates vehicle-specific information. At
       times, this class is optimized to efficiently collect information from
       the simulator (see flow/core/kernel/vehicle/base.py).
-    - traffic_light: stores and regularly updates traffic light-specific
+    * traffic_light: stores and regularly updates traffic light-specific
       information (see flow/core/kernel/traffic_light/base.py).
 
     The above kernel subclasses are designed specifically to support
@@ -76,17 +76,20 @@ class Kernel(object):
         simulators. For example, this step allows the vehicle subclass in the
         "traci" simulator uses the ``update`` method to collect and store
         subscription information.
+
+        Parameters
+        ----------
         """
-        self.scenario.update()
-        self.simulation.update()
+        self.scenario.update(reset)
+        self.simulation.update(reset)
         self.vehicle.update(reset)
-        self.traffic_light.update()
+        self.traffic_light.update(reset)
 
     def close(self):
         """
 
         """
         self.scenario.close()
-        # self.simulation.close()
-        # self.vehicle.close()
-        # self.traffic_light.close()
+        self.simulation.close()
+        self.vehicle.close()
+        self.traffic_light.close()

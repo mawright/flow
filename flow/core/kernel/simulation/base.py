@@ -13,7 +13,7 @@ class KernelSimulation(object):
         master_kernel : flow.core.kernel.Kernel
             the higher level kernel (used to call methods from other
             sub-kernels)
-        kernel_api : object
+        kernel_api : any
             an API that may be used to interact with the simulator
         """
         self.master_kernel = master_kernel
@@ -26,11 +26,17 @@ class KernelSimulation(object):
         """
         raise NotImplementedError
 
-    def update(self):
+    def update(self, reset):
         """Update the internal attributes of the simulation kernel.
 
         Any update operations are meant to support ease of simulation in
         current and future steps.
+
+        Parameters
+        ----------
+        reset : bool
+            specifies whether the simulator was reset in the last simulation
+            step
         """
         raise NotImplementedError
 

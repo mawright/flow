@@ -54,7 +54,7 @@ class KernelScenario(object):
         master_kernel : flow.core.kernel.Kernel
             the higher level kernel (used to call methods from other
             sub-kernels)
-        kernel_api : object
+        kernel_api : any
             an API that may be used to interact with the simulator
         network : flow.scenarios.Scenario
             an object containing relevant network-specific features such as the
@@ -64,18 +64,23 @@ class KernelScenario(object):
         self.kernel_api = kernel_api
         self.network = network
 
-    def update(self):
-        """
+    def update(self, reset):
+        """Update the scenario with current state information.
 
-        :return:
+        Since scenarios are generally static, this will most likely not include
+        any actions being performed. This is primarily here for consistency
+        with other sub-kernels.
+
+        Parameters
+        ----------
+        reset : bool
+            specifies whether the simulator was reset in the last simulation
+            step
         """
         raise NotImplementedError
 
     def close(self):
-        """
-
-        :return:
-        """
+        """Close the scenario."""
         raise NotImplementedError
 
     ###########################################################################

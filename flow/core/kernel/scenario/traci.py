@@ -45,7 +45,7 @@ class TraCIScenario(KernelScenario):
         master_kernel : flow.core.kernel.Kernel
             the higher level kernel (used to call methods from other
             sub-kernels)
-        kernel_api : object
+        kernel_api : any
             an API that may be used to interact with the simulator
         network : flow.scenarios.Scenario
             an object containing relevant network-specific features such as the
@@ -120,7 +120,7 @@ class TraCIScenario(KernelScenario):
         # specify the location of the sumo configuration file
         self.cfg = self.cfg_path + cfg_name
 
-    def update(self):
+    def update(self, reset):
         """Perform no action of value (scenarios are static)."""
         pass
 

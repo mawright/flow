@@ -8,8 +8,15 @@ class TraCITrafficLight(KernelTrafficLight):
     """
 
     def __init__(self, master_kernel, kernel_api):
-        """
+        """Instantiate the sumo traffic light kernel.
 
+        Parameters
+        ----------
+        master_kernel : flow.core.kernel.Kernel
+            the higher level kernel (used to call methods from other
+            sub-kernels)
+        kernel_api : any
+            an API that may be used to interact with the simulator
         """
         KernelTrafficLight.__init__(self, master_kernel, kernel_api)
 
@@ -27,7 +34,7 @@ class TraCITrafficLight(KernelTrafficLight):
             self.kernel_api.trafficlight.subscribe(
                 node_id, [tc.TL_RED_YELLOW_GREEN_STATE])
 
-    def update(self):
+    def update(self, reset):
         """See parent class."""
         tls_obs = self.kernel_api.trafficlight.getSubscriptionResults()
         self.__tls = tls_obs.copy()
