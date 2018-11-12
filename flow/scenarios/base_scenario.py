@@ -83,25 +83,7 @@ class Scenario(Serializable):
         self.vehicle_ids = []
 
         self.net_params = net_params
-        self.net_path = os.path.dirname(os.path.abspath(__file__)) \
-            + "/debug/net/"
-        self.cfg_path = os.path.dirname(os.path.abspath(__file__)) \
-            + "/debug/cfg/"
         self.vehicle_ids = []
-
-        ensure_dir("%s" % self.net_path)
-        ensure_dir("%s" % self.cfg_path)
-
-        self.nodfn = "%s.nod.xml" % self.name
-        self.edgfn = "%s.edg.xml" % self.name
-        self.typfn = "%s.typ.xml" % self.name
-        self.cfgfn = "%s.netccfg" % self.name
-        self.netfn = "%s.net.xml" % self.name
-        self.confn = "%s.con.xml" % self.name
-        self.roufn = "%s.rou.xml" % self.name
-        self.addfn = "%s.add.xml" % self.name
-        self.sumfn = "%s.sumo.cfg" % self.name
-        self.guifn = "%s.gui.cfg" % self.name
 
         # create the network configuration files
         self._edges, self._connections = self.generate_net(
@@ -113,10 +95,6 @@ class Scenario(Serializable):
         ]
         self._junction_list = list(
             set(self._edges.keys()) - set(self._edge_list))
-
-        # maximum achievable speed on any edge in the network
-        self.max_speed = max(
-            self.speed_limit(edge) for edge in self.get_edge_list())
 
         # parameters to be specified under each unique subclass's
         # __init__() function
@@ -146,30 +124,6 @@ class Scenario(Serializable):
         self.total_edgestarts.sort(key=lambda tup: tup[1])
 
         self.total_edgestarts_dict = dict(self.total_edgestarts)
-
-        # length of the network, or the portion of the network in
-        # which cars are meant to be distributed
-        # (may be overridden by subclass __init__())
-        if not hasattr(self, "length"):
-            self.length = sum([
-                self.edge_length(edge_id) for edge_id in self.get_edge_list()
-            ])
-
-        # generate starting position for vehicles in the network
-        kwargs = initial_config.additional_params
-        positions, lanes, speeds = self.generate_starting_positions(
-            num_vehicles=vehicles.num_vehicles,
-            **kwargs
-        )
-
-        # create the sumo configuration files
-        cfg_name = self.generate_cfg(self.net_params, self.traffic_lights)
-
-        shuffle = initial_config.shuffle
-        self.make_routes(self, positions, lanes, speeds, shuffle)
-
-        # specify the location of the sumo configuration file
-        self.cfg = self.cfg_path + cfg_name
 
     def specify_edge_starts(self):
         """Define edge starts for road sections in the network.
@@ -619,71 +573,6 @@ class Scenario(Serializable):
 
         printxml(cfg, self.cfg_path + self.sumfn)
         return self.sumfn
-
-    def make_routes(self, scenario, positions, lanes, shuffle):
-        """Generate .rou.xml files using net files and netconvert.
-
-        This file specifies the sumo-specific properties of vehicles with
-        similar types, and well as the starting positions of vehicles. The
-        starting positions, however, may be modified in real-time (e.g. during
-        an environment reset).
-
-        Parameters
-        ----------
-        scenario : Scenario type
-            scenario class calling this method. This contains information on
-            the properties and initial states of vehicles in the network.
-        positions : list of tuple (float, float)
-            list of start positions [(edge0, pos0), (edge1, pos1), ...]
-        lanes : list of float
-            list of start lanes
-        shuffle : bool
-            specifies whether the vehicle IDs should be shuffled before the
-            vehicles are assigned starting positions
-        """
-        vehicles = scenario.vehicles
-        routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
-
-        # add the types of vehicles to the xml file
-        for params in vehicles.types:
-            type_params_str = {
-                key: str(params["type_params"][key])
-                for key in params["type_params"]
-            }
-            routes.append(E("vType", id=params["veh_id"], **type_params_str))
-
-        self.vehicle_ids = vehicles.get_ids()
-
-        if shuffle:
-            random.shuffle(self.vehicle_ids)
-
-        # add the initial positions of vehicles to the xml file
-        for i, veh_id in enumerate(self.vehicle_ids):
-            veh_type = vehicles.get_state(veh_id, "type")
-            edge, pos = positions[i]
-            lane = lanes[i]
-            type_depart_speed = vehicles.get_initial_speed(veh_id)
-            routes.append(
-                self._vehicle(
-                    veh_type,
-                    "route" + edge,
-                    depart="0",
-                    id=veh_id,
-                    color="1,1,1",
-                    departSpeed=str(type_depart_speed),
-                    departPos=str(pos),
-                    departLane=str(lane)))
-
-        # add the in-flows from various edges to the xml file
-        if self.net_params.inflows is not None:
-            total_inflows = self.net_params.inflows.get()
-            for inflow in total_inflows:
-                for key in inflow:
-                    if not isinstance(inflow[key], str):
-                        inflow[key] = repr(inflow[key])
-                routes.append(self._flow(**inflow))
-
-        printxml(routes, self.cfg_path + self.roufn)
 
     def _flow(self, name, vtype, route, **kwargs):
         return E("flow", id=name, route=route, type=vtype, **kwargs)

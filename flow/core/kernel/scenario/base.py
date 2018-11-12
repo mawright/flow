@@ -13,11 +13,12 @@ class KernelScenario(object):
 
     """
 
-    def __init__(self, kernel_api):
+    def __init__(self, kernel_api, network):
         """
 
         """
         self.kernel_api = kernel_api
+        self.network = network
 
     def update(self):
         """
@@ -44,11 +45,19 @@ class KernelScenario(object):
         """
         raise NotImplementedError
 
+    def length(self):
+        """Return the total length of all junctions and edges."""
+        raise NotImplementedError
+
     def speed_limit(self, edge_id):
         """Return the speed limit of a given edge/junction.
 
         Return -1001 if edge not found.
         """
+        raise NotImplementedError
+
+    def max_speed(self):
+        """Return the maximum achievable speed on any edge in the network."""
         raise NotImplementedError
 
     def num_lanes(self, edge_id):
@@ -64,13 +73,6 @@ class KernelScenario(object):
 
     def get_junction_list(self):
         """Return the names of all junctions in the network."""
-        raise NotImplementedError
-
-    def max_speed(self):
-        """
-
-        :return:
-        """
         raise NotImplementedError
 
     def get_edge(self, x):  # TODO: maybe remove

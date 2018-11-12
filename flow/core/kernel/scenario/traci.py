@@ -18,16 +18,36 @@ WAIT_ON_ERROR = 1
 
 
 class TraCIScenario(KernelScenario):
+    """Base scenario kernel for sumo-based simulations.
+
+    This class initializes a new scenario. Scenarios are used to specify
+    features of a network, including the positions of nodes, properties of the
+    edges and junctions connecting these nodes, properties of vehicles and
+    traffic lights, and other features as well.
+
+    This class uses network specific features to generate the necessary xml
+    files needed to initialize a sumo instance. The methods of this class are
+    called by the base scenario class.
+
+    Several network specific features can be acquired from this class via a
+    plethora of get methods (see documentation).
+
+    This class can be instantiated once and reused in multiple experiments.
+    Note that this function stores all the relevant parameters. The
+    generate() function still needs to be called separately.
     """
 
-    """
+    def __init__(self, kernel_api, network):
+        """Instantiate a sumo scenario kernel.
 
-    def __init__(self, kernel_api):
+        Parameters
+        ----------
+        kernel_api : blank
+            blank
+        network : blank
+            blank
         """
-
-        :param kernel_api:
-        """
-        super(TraCIScenario, self).__init__(kernel_api)
+        super(TraCIScenario, self).__init__(kernel_api, network)
 
         self.net_path = os.path.dirname(os.path.abspath(__file__)) \
             + "/debug/net/"
@@ -37,16 +57,44 @@ class TraCIScenario(KernelScenario):
         ensure_dir("%s" % self.net_path)
         ensure_dir("%s" % self.cfg_path)
 
-        self.nodfn = "%s.nod.xml" % self.name
-        self.edgfn = "%s.edg.xml" % self.name
-        self.typfn = "%s.typ.xml" % self.name
-        self.cfgfn = "%s.netccfg" % self.name
-        self.netfn = "%s.net.xml" % self.name
-        self.confn = "%s.con.xml" % self.name
-        self.roufn = "%s.rou.xml" % self.name
-        self.addfn = "%s.add.xml" % self.name
-        self.sumfn = "%s.sumo.cfg" % self.name
-        self.guifn = "%s.gui.cfg" % self.name
+        self.nodfn = "%s.nod.xml" % self.network.name
+        self.edgfn = "%s.edg.xml" % self.network.name
+        self.typfn = "%s.typ.xml" % self.network.name
+        self.cfgfn = "%s.netccfg" % self.network.name
+        self.netfn = "%s.net.xml" % self.network.name
+        self.confn = "%s.con.xml" % self.network.name
+        self.roufn = "%s.rou.xml" % self.network.name
+        self.addfn = "%s.add.xml" % self.network.name
+        self.sumfn = "%s.sumo.cfg" % self.network.name
+        self.guifn = "%s.gui.cfg" % self.network.name
+
+        # maximum achievable speed on any edge in the network
+        self.__max_speed = max(
+            self.speed_limit(edge) for edge in self.get_edge_list())
+
+        # length of the network, or the portion of the network in
+        # which cars are meant to be distributed
+        self.__length = sum([
+            self.edge_length(edge_id) for edge_id in self.get_edge_list()
+        ])
+
+        # generate starting position for vehicles in the network
+        kwargs = self.network.initial_config.additional_params
+        positions, lanes, speeds = self.generate_starting_positions(
+            num_vehicles=self.network.vehicles.num_vehicles,
+            **kwargs
+        )
+
+        # create the sumo configuration files
+        cfg_name = self.generate_cfg(self.network.net_params,
+                                     self.network.traffic_lights,
+                                     self.network.routes)
+
+        shuffle = self.network.initial_config.shuffle
+        self.make_routes(positions, lanes, speeds, shuffle)
+
+        # specify the location of the sumo configuration file
+        self.cfg = self.cfg_path + cfg_name
 
     def update(self):
         """
@@ -141,6 +189,9 @@ class TraCIScenario(KernelScenario):
         except KeyError:
             print('Error in edge length with key', edge_id)
             return -1001
+
+    def length(self):
+        return self.__length
 
     def speed_limit(self, edge_id):
         """Return the speed limit of a given edge/junction.
@@ -465,7 +516,7 @@ class TraCIScenario(KernelScenario):
         printxml(cfg, self.cfg_path + self.sumfn)
         return self.sumfn
 
-    def make_routes(self, scenario, positions, lanes, speeds, shuffle):
+    def make_routes(self, positions, lanes, speeds, shuffle):
         """Generate .rou.xml files using net files and netconvert.
 
         This file specifies the sumo-specific properties of vehicles with
@@ -475,9 +526,6 @@ class TraCIScenario(KernelScenario):
 
         Parameters
         ----------
-        scenario : Scenario type
-            scenario class calling this method. This contains information on
-            the properties and initial states of vehicles in the network.
         positions : list of tuple (float, float)
             list of start positions [(edge0, pos0), (edge1, pos1), ...]
         lanes : list of float
@@ -488,7 +536,7 @@ class TraCIScenario(KernelScenario):
             specifies whether the vehicle IDs should be shuffled before the
             vehicles are assigned starting positions
         """
-        vehicles = scenario.vehicles
+        vehicles = self.netowrk.vehicles
         routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
 
         # add the types of vehicles to the xml file
