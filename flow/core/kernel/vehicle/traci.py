@@ -19,11 +19,10 @@ class TraCIVehicle(KernelVehicle):
 
     def __init__(self,
                  master_kernel,
-                 kernel_api,
                  sim_params,
                  vehicles):
         """See parent class."""
-        KernelVehicle.__init__(self, master_kernel, kernel_api, sim_params)
+        KernelVehicle.__init__(self, master_kernel, sim_params)
 
         self.__ids = []  # ids of all vehicles
         self.__human_ids = []  # ids of human-driven vehicles

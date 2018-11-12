@@ -43,7 +43,6 @@ class Kernel(object):
 
     def __init__(self,
                  simulator,
-                 kernel_api,
                  sim_params,
                  scenario,
                  vehicles):
@@ -59,14 +58,28 @@ class Kernel(object):
         ValueError
             if the specified input simulator is not a valid type
         """
+        self.kernel_api = None
+
         if simulator == "traci":
-            self.simulation = TraCISimulation(self, kernel_api)
-            self.scenario = TraCIScenario(self, kernel_api, scenario)
-            self.vehicle = TraCIVehicle(self, kernel_api, sim_params, vehicles)
-            self.traffic_light = TraCITrafficLight(self, kernel_api)
+            self.simulation = TraCISimulation(self)
+            self.scenario = TraCIScenario(self, scenario)
+            self.vehicle = TraCIVehicle(self, sim_params, vehicles)
+            self.traffic_light = TraCITrafficLight(self)
         else:
             raise ValueError('Simulator type "{}" is not valid.'.
                              format(simulator))
+
+    def pass_api(self, kernel_api):
+        """
+
+        :param kernel_api:
+        :return:
+        """
+        self.kernel_api = kernel_api
+        self.simulation.pass_api(kernel_api)
+        self.scenario.pass_api(kernel_api)
+        self.vehicle.pass_api(kernel_api)
+        self.traffic_light.pass_api(kernel_api)
 
     def update(self, reset):
         """Update the kernel subclasses with after a simulation step.

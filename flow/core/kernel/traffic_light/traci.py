@@ -8,7 +8,7 @@ class TraCITrafficLight(KernelTrafficLight):
     Implements all methods discussed in the base traffic light kernel class.
     """
 
-    def __init__(self, master_kernel, kernel_api):
+    def __init__(self, master_kernel):
         """Instantiate the sumo traffic light kernel.
 
         Parameters
@@ -16,13 +16,24 @@ class TraCITrafficLight(KernelTrafficLight):
         master_kernel : flow.core.kernel.Kernel
             the higher level kernel (used to call methods from other
             sub-kernels)
-        kernel_api : any
-            an API that may be used to interact with the simulator
         """
-        KernelTrafficLight.__init__(self, master_kernel, kernel_api)
+        KernelTrafficLight.__init__(self, master_kernel)
 
         self.__tls = dict()  # contains current time step traffic light data
         self.__tls_properties = dict()  # traffic light xml properties
+
+        # names of nodes with traffic lights
+        self.__ids = []
+
+        # number of traffic light nodes
+        self.num_traffic_lights = 0
+
+    def pass_api(self, kernel_api):
+        """See parent class.
+
+        Subscriptions and vehicle IDs are also added here.
+        """
+        KernelTrafficLight.pass_api(self, kernel_api)
 
         # names of nodes with traffic lights
         self.__ids = kernel_api.trafficlight.getIDList()
