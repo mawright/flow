@@ -37,17 +37,21 @@ class TraCIScenario(KernelScenario):
     generate() function still needs to be called separately.
     """
 
-    def __init__(self, kernel_api, network):
+    def __init__(self, master_kernel, kernel_api, network):
         """Instantiate a sumo scenario kernel.
 
         Parameters
         ----------
-        kernel_api : blank
-            blank
-        network : blank
-            blank
+        master_kernel : flow.core.kernel.Kernel
+            the higher level kernel (used to call methods from other
+            sub-kernels)
+        kernel_api : object
+            an API that may be used to interact with the simulator
+        network : flow.scenarios.Scenario
+            an object containing relevant network-specific features such as the
+            locations and properties of nodes and edges in the network
         """
-        super(TraCIScenario, self).__init__(kernel_api, network)
+        super(TraCIScenario, self).__init__(master_kernel, kernel_api, network)
 
         self.net_path = os.path.dirname(os.path.abspath(__file__)) \
             + "/debug/net/"
@@ -117,10 +121,7 @@ class TraCIScenario(KernelScenario):
         self.cfg = self.cfg_path + cfg_name
 
     def update(self):
-        """
-
-        :return:
-        """
+        """Perform no action of value (scenarios are static)."""
         pass
 
     def close(self):

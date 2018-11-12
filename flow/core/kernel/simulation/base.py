@@ -6,8 +6,15 @@ class KernelSimulation(object):
     """
 
     def __init__(self, master_kernel, kernel_api):
-        """
+        """Initialize the simulation kernel.
 
+        Parameters
+        ----------
+        master_kernel : flow.core.kernel.Kernel
+            the higher level kernel (used to call methods from other
+            sub-kernels)
+        kernel_api : object
+            an API that may be used to interact with the simulator
         """
         self.master_kernel = master_kernel
         self.kernel_api = kernel_api
@@ -20,16 +27,22 @@ class KernelSimulation(object):
         raise NotImplementedError
 
     def update(self):
-        """
+        """Update the internal attributes of the simulation kernel.
 
-        :return:
+        Any update operations are meant to support ease of simulation in
+        current and future steps.
         """
         raise NotImplementedError
 
-    def start_simulation(self):
+    def start_simulation(self, network, sim_params):
         """Start a simulation instance.
 
-        :return:
+        network : any
+            an object or variable that is meant to symbolize the network that
+            is used during the simulation. For example, in the case of sumo
+            simulations, this is (string) the path to the .sumo.cfg file.
+        sim_params : flow.core.params.SumoParams  # FIXME: make ambiguous
+            simulation-specific parameters
         """
         raise NotImplementedError
 
@@ -44,10 +57,6 @@ class KernelSimulation(object):
         ----------
         file_path : str
             location of the store simulation parameters
-
-        Returns
-        -------
-        nothing
         """
         raise NotImplementedError
 
@@ -60,9 +69,5 @@ class KernelSimulation(object):
         ----------
         file_path : str
             location to store simulation parameters
-
-        Returns
-        -------
-        nothing
         """
         raise NotImplementedError
