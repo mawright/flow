@@ -68,6 +68,23 @@ class TraCIScenario(KernelScenario):
         self.sumfn = "%s.sumo.cfg" % self.network.name
         self.guifn = "%s.gui.cfg" % self.network.name
 
+        # create the network configuration files
+        self._edges, self._connections = self.generate_net(
+            self.network.net_params,
+            self.network.traffic_lights,
+            self.network.nodes,
+            self.network.edges,
+            self.network.types,
+            self.network.connections
+        )
+
+        # list of edges and internal links (junctions)
+        self._edge_list = [
+            edge_id for edge_id in self._edges.keys() if edge_id[0] != ":"
+        ]
+        self._junction_list = list(
+            set(self._edges.keys()) - set(self._edge_list))
+
         # maximum achievable speed on any edge in the network
         self.__max_speed = max(
             self.speed_limit(edge) for edge in self.get_edge_list())
@@ -89,6 +106,9 @@ class TraCIScenario(KernelScenario):
         cfg_name = self.generate_cfg(self.network.net_params,
                                      self.network.traffic_lights,
                                      self.network.routes)
+
+        # specify routes vehicles can take  # TODO: move into a method
+        self.rts = self.network.routes
 
         shuffle = self.network.initial_config.shuffle
         self.make_routes(positions, lanes, speeds, shuffle)
@@ -144,7 +164,7 @@ class TraCIScenario(KernelScenario):
             1st element: edge name (such as bottom, right, etc.)
             2nd element: relative position on edge
         """
-        for (edge, start_pos) in reversed(self.total_edgestarts):
+        for (edge, start_pos) in reversed(self.network.total_edgestarts):
             if x >= start_pos:
                 return edge, x - start_pos
 
@@ -170,14 +190,14 @@ class TraCIScenario(KernelScenario):
 
         if edge[0] == ":":
             try:
-                return self.internal_edgestarts_dict[edge] + position
+                return self.network.internal_edgestarts_dict[edge] + position
             except KeyError:
                 # in case several internal links are being generalized for
                 # by a single element (for backwards compatibility)
                 edge_name = edge.rsplit("_", 1)[0]
-                return self.total_edgestarts_dict.get(edge_name, -1001)
+                return self.network.total_edgestarts_dict.get(edge_name, -1001)
         else:
-            return self.total_edgestarts_dict[edge] + position
+            return self.network.total_edgestarts_dict[edge] + position
 
     def edge_length(self, edge_id):
         """Return the length of a given edge/junction.
@@ -280,6 +300,37 @@ class TraCIScenario(KernelScenario):
         traffic_lights : flow.core.traffic_lights.TrafficLights type
             traffic light information, used to determine which nodes are
             treated as traffic lights
+        nodes : list of dict
+            A list of node attributes (a separate dict for each node). Nodes
+            attributes must include:
+
+            * id {string} -- name of the node
+            * x {float} -- x coordinate of the node
+            * y {float} -- y coordinate of the node
+
+        edges : list of dict
+            A list of edges attributes (a separate dict for each edge). Edge
+            attributes must include:
+
+            * id {string} -- name of the edge
+            * from {string} -- name of node the directed edge starts from
+            * to {string} -- name of the node the directed edge ends at
+
+            In addition, the attributes must contain at least one of the
+            following:
+
+            * "numLanes" {int} and "speed" {float} -- the number of lanes and
+              speed limit of the edge, respectively
+            * type {string} -- a type identifier for the edge, which can be
+              used if several edges are supposed to possess the same number of
+              lanes, speed limits, etc...
+
+        types : list of dict
+            A list of type attributes for specific groups of edges. If none are
+            specified, no .typ.xml file is created.
+        connections : list of dict
+            A list of connection attributes. If none are specified, no .con.xml
+            file is created.
 
         Returns
         -------
@@ -291,7 +342,6 @@ class TraCIScenario(KernelScenario):
                 Key = lane index
                 Element = list of edge/lane pairs that a vehicle can traverse
                 from the arriving edge/lane pairs
-
         """
         # add traffic lights to the nodes
         tl_ids = list(traffic_lights.get_properties().keys())
@@ -399,9 +449,12 @@ class TraCIScenario(KernelScenario):
         traffic_lights : flow.core.traffic_lights.TrafficLights type
             traffic light information, used to determine which nodes are
             treated as traffic lights
+        routes : dict
+            Key = name of the starting edge
+            Element = list of edges a vehicle starting from this edge must
+            traverse.
         """
         start_time = 0
-        end_time = None
 
         # specify routes vehicles can take
         self.rts = routes
@@ -502,15 +555,13 @@ class TraCIScenario(KernelScenario):
 
         cfg.append(
             self._inputs(
-                self.name,
+                self.network.name,
                 net=self.netfn,
                 add=self.addfn,
                 rou=self.roufn,
                 gui=self.guifn))
         t = E("time")
         t.append(E("begin", value=repr(start_time)))
-        if end_time:
-            t.append(E("end", value=repr(end_time)))
         cfg.append(t)
 
         printxml(cfg, self.cfg_path + self.sumfn)
@@ -536,7 +587,7 @@ class TraCIScenario(KernelScenario):
             specifies whether the vehicle IDs should be shuffled before the
             vehicles are assigned starting positions
         """
-        vehicles = self.netowrk.vehicles
+        vehicles = self.network.vehicles
         routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
 
         # add the types of vehicles to the xml file
@@ -568,8 +619,9 @@ class TraCIScenario(KernelScenario):
                     departLane=str(lanes[i])))
 
         # add the in-flows from various edges to the xml file
-        if self.net_params.inflows is not None:
-            total_inflows = self.net_params.inflows.get()
+        inflows = self.network.net_params.inflows
+        if inflows is not None:
+            total_inflows = inflows.get()
             for inflow in total_inflows:
                 for key in inflow:
                     if not isinstance(inflow[key], str):
@@ -709,7 +761,8 @@ class TraCIScenario(KernelScenario):
             from_edge = connection.attrib["from"]
             from_lane = int(connection.attrib["fromLane"])
 
-            if from_edge[0] != ":" and not self.net_params.no_internal_links:
+            no_internal_links = self.network.net_params.no_internal_links
+            if from_edge[0] != ":" and not no_internal_links:
                 # if the edge is not an internal links and the network is
                 # allowed to have internal links, then get the next edge/lane
                 # pair from the "via" element
