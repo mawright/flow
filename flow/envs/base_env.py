@@ -668,7 +668,6 @@ class Env(gym.Env, Serializable):
         self._close()
 
     def _close(self):
-        self.traci_connection.close()
         self.k.close()
 
     def teardown_sumo(self):

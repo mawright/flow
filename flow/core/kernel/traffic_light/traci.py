@@ -3,8 +3,9 @@ import traci.constants as tc
 
 
 class TraCITrafficLight(KernelTrafficLight):
-    """
+    """Sumo traffic light kernel.
 
+    Implements all methods discussed in the base traffic light kernel class.
     """
 
     def __init__(self, master_kernel, kernel_api):

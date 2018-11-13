@@ -1,6 +1,6 @@
 """Script containing the Flow kernel object for interacting with simulators."""
 from flow.core.kernel.simulation import TraCISimulation
-# from flow.core.kernel.scenario import TraCIScenario
+from flow.core.kernel.scenario import TraCIScenario
 from flow.core.kernel.vehicle import TraCIVehicle
 from flow.core.kernel.traffic_light import TraCITrafficLight
 
@@ -61,8 +61,7 @@ class Kernel(object):
         """
         if simulator == "traci":
             self.simulation = TraCISimulation(self, kernel_api)
-            # self.scenario = TraCIScenario(self, kernel_api, scenario)
-            self.scenario = scenario
+            self.scenario = TraCIScenario(self, kernel_api, scenario)
             self.vehicle = TraCIVehicle(self, kernel_api, sim_params, vehicles)
             self.traffic_light = TraCITrafficLight(self, kernel_api)
         else:
@@ -86,10 +85,6 @@ class Kernel(object):
         self.traffic_light.update(reset)
 
     def close(self):
-        """
-
-        """
+        """Terminate all components within the simulation and scenario."""
         self.scenario.close()
         self.simulation.close()
-        self.vehicle.close()
-        self.traffic_light.close()

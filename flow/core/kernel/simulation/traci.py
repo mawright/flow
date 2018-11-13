@@ -8,8 +8,15 @@ class TraCISimulation(KernelSimulation):
     """
 
     def __init__(self, master_kernel, kernel_api):
-        """
+        """Instantiate the sumo simulator kernel.
 
+        Parameters
+        ----------
+        master_kernel : flow.core.kernel.Kernel
+            the higher level kernel (used to call methods from other
+            sub-kernels)
+        kernel_api : any
+            an API that may be used to interact with the simulator
         """
         KernelSimulation.__init__(self, master_kernel, kernel_api)
 
@@ -27,3 +34,7 @@ class TraCISimulation(KernelSimulation):
     def update(self, reset):
         """See parent class."""
         pass
+
+    def close(self):
+        """See parent class."""
+        self.kernel_api.close()
