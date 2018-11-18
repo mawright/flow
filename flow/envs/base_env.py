@@ -91,11 +91,6 @@ class Env(gym.Env, Serializable):
             env_params.vehicle_arrangement_shuffle
         self.starting_position_shuffle = env_params.starting_position_shuffle
 
-        # the available_routes variable contains a dictionary of routes
-        # vehicles can traverse; to be used when routes need to be chosen
-        # dynamically
-        self.available_routes = self.scenario.rts
-
         # store the initial state of the vehicles class (for restarting sumo)
         self.initial_vehicles = deepcopy(scenario.vehicles)
 
@@ -117,6 +112,11 @@ class Env(gym.Env, Serializable):
 
         # pass the kernel api to the kernel and it's subclasses
         self.k.pass_api(api)
+
+        # the available_routes variable contains a dictionary of routes
+        # vehicles can traverse; to be used when routes need to be chosen
+        # dynamically
+        self.available_routes = self.k.scenario.rts
 
         # store the initial vehicle ids
         self.initial_ids = deepcopy(scenario.vehicles.ids)
@@ -390,13 +390,23 @@ class Env(gym.Env, Serializable):
 
             try:
                 self.k.vehicle.add(
-                    veh_id, route_id, type_id, lane_index, pos, speed)
+                    veh_id=veh_id,
+                    type_id=type_id,
+                    route_id=route_id,
+                    lane=lane_index,
+                    pos=pos,
+                    speed=speed)
             except (FatalTraCIError, TraCIException):
                 # if a vehicle was not removed in the first attempt, remove it
                 # now and then reintroduce it
                 self.k.vehicle.remove(veh_id)
                 self.k.vehicle.add(
-                    veh_id, route_id, type_id, lane_index, pos, speed)
+                    veh_id=veh_id,
+                    type_id=type_id,
+                    route_id=route_id,
+                    lane=lane_index,
+                    pos=pos,
+                    speed=speed)
 
         # advance the simulation in the simulator by one step
         self.k.simulation.simulation_step()

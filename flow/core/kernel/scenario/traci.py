@@ -102,6 +102,7 @@ class TraCIScenario(KernelScenario):
         # generate starting position for vehicles in the network
         kwargs = self.network.initial_config.additional_params
         positions, lanes, speeds = self.generate_starting_positions(
+            initial_config=self.network.initial_config,
             num_vehicles=self.network.vehicles.num_vehicles,
             **kwargs
         )
@@ -235,6 +236,10 @@ class TraCIScenario(KernelScenario):
         except KeyError:
             print('Error in num lanes with key', edge_id)
             return -1001
+
+    def max_speed(self):
+        """See parent class."""
+        return self.__max_speed
 
     def get_edge_list(self):
         """Return the names of all edges in the network."""

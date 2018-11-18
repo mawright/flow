@@ -138,8 +138,9 @@ class TraCIVehicle(KernelVehicle):
                 else:
                     change = self.master_kernel.scenario.get_x(
                         this_edge, this_pos) - prev_pos
-                    new_abs_pos = (self.get_absolute_position(veh_id) +
-                                   change) % self.master_kernel.scenario.length
+                    new_abs_pos = \
+                        (self.get_absolute_position(veh_id) +
+                         change) % self.master_kernel.scenario.length()
                     self.__vehicles[veh_id]["absolute_position"] = new_abs_pos
 
             # updated the list of departed and arrived vehicles

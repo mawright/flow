@@ -99,7 +99,7 @@ class AccelEnv(Env):
     def get_state(self, **kwargs):
         """See class definition."""
         # speed normalizer
-        max_speed = self.scenario.max_speed
+        max_speed = self.k.scenario.max_speed()
 
         return np.array([[
             self.k.vehicle.get_speed(veh_id) / max_speed,
