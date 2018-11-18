@@ -389,24 +389,14 @@ class Env(gym.Env, Serializable):
                 self.initial_state[veh_id]
 
             try:
-                self.traci_connection.vehicle.addFull(
-                    veh_id,
-                    route_id,
-                    typeID=str(type_id),
-                    departLane=str(lane_index),
-                    departPos=str(pos),
-                    departSpeed=str(speed))
+                self.k.vehicle.add(
+                    veh_id, route_id, type_id, lane_index, pos, speed)
             except (FatalTraCIError, TraCIException):
                 # if a vehicle was not removed in the first attempt, remove it
                 # now and then reintroduce it
                 self.k.vehicle.remove(veh_id)
-                self.traci_connection.vehicle.addFull(
-                    veh_id,
-                    route_id,
-                    typeID=str(type_id),
-                    departLane=str(lane_index),
-                    departPos=str(pos),
-                    departSpeed=str(speed))
+                self.k.vehicle.add(
+                    veh_id, route_id, type_id, lane_index, pos, speed)
 
         # advance the simulation in the simulator by one step
         self.k.simulation.simulation_step()

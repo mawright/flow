@@ -846,3 +846,13 @@ class TraCIVehicle(KernelVehicle):
         # clear the list of observed vehicles
         for veh_id in self.get_observed_ids():
             self.remove_observed(veh_id)
+
+    def add(self, veh_id, type_id, route_id, pos, lane, speed):
+        """See parent clas."""
+        self.kernel_api.vehicle.addFull(
+            veh_id,
+            route_id,
+            typeID=str(type_id),
+            departLane=str(lane),
+            departPos=str(pos),
+            departSpeed=str(speed))
