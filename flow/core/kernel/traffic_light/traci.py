@@ -1,3 +1,5 @@
+"""Script containing the TraCI traffic light kernel class."""
+
 from flow.core.kernel.traffic_light import KernelTrafficLight
 import traci.constants as tc
 

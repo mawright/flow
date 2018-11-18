@@ -123,7 +123,7 @@ class Env(gym.Env, Serializable):
 
         self.setup_initial_state()
 
-    # TODO(ak): move to simulation kernel
+    # TODO(ak): Rename to restart_simulation
     def restart_sumo(self, sumo_params, render=None):
         """Restart an already initialized sumo instance.
 
@@ -135,13 +135,12 @@ class Env(gym.Env, Serializable):
 
         Parameters
         ----------
-        sumo_params: SumoParams type
+        sumo_params: SumoParams type  # TODO: make ambiguous
             sumo-specific parameters
         render: bool, optional
             specifies whether to use sumo's gui
         """
-        self.traci_connection.close(False)
-        self.sumo_proc.kill()
+        self.k.simulation.close()
 
         if render is not None:
             self.sumo_params.render = render
@@ -559,9 +558,6 @@ class Env(gym.Env, Serializable):
             "Closing connection to TraCI and stopping simulation.\n"
             "Note, this may print an error message when it closes."
         )
-        self._close()
-
-    def _close(self):
         self.k.close()
 
     def _seed(self, seed=None):

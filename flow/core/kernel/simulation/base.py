@@ -1,3 +1,4 @@
+"""Script containing the base simulation kernel class."""
 
 
 class KernelSimulation(object):
@@ -36,6 +37,18 @@ class KernelSimulation(object):
         """
         self.kernel_api = kernel_api
 
+    def start_simulation(self, network, sim_params):
+        """Start a simulation instance.
+
+        network : any
+            an object or variable that is meant to symbolize the network that
+            is used during the simulation. For example, in the case of sumo
+            simulations, this is (string) the path to the .sumo.cfg file.
+        sim_params : flow.core.params.SumoParams  # FIXME: make ambiguous
+            simulation-specific parameters
+        """
+        raise NotImplementedError
+
     def simulation_step(self):
         """Advance the simulation by one step.
 
@@ -57,27 +70,6 @@ class KernelSimulation(object):
         """
         raise NotImplementedError
 
-    def start_simulation(self, network, sim_params):
-        """Start a simulation instance.
-
-        network : any
-            an object or variable that is meant to symbolize the network that
-            is used during the simulation. For example, in the case of sumo
-            simulations, this is (string) the path to the .sumo.cfg file.
-        sim_params : flow.core.params.SumoParams  # FIXME: make ambiguous
-            simulation-specific parameters
-        """
-        raise NotImplementedError
-
-    def restart_simulation(self, network, sim_params):
-        """
-
-        :param network:
-        :param sim_params:
-        :return:
-        """
-        raise NotImplementedError
-
     def check_collision(self):
         """Determine if a collision occurred in the last time step.
 
@@ -88,28 +80,6 @@ class KernelSimulation(object):
         """
         raise NotImplementedError
 
-    def load_simulation(self, file_path):
-        """Load a saved network configuration into the simulation instance.
-
-        This includes the starting position and speeds of vehicles on a
-        network, as well the geometry of the network and the location of
-        traffic lights.
-
-        Parameters
-        ----------
-        file_path : str
-            location of the store simulation parameters
-        """
-        raise NotImplementedError
-
-    def save_simulation(self, file_path):
-        """Save the network configuration of a simulation.
-
-        This can later be loaded (see ``load_simulation``).
-
-        Parameters
-        ----------
-        file_path : str
-            location to store simulation parameters
-        """
+    def close(self):
+        """Closes the current simulation instance."""
         raise NotImplementedError

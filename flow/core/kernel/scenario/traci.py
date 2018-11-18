@@ -1,3 +1,5 @@
+"""Script containing the TraCI scenario kernel class."""
+
 from flow.core.kernel.scenario import KernelScenario
 from flow.core.util import makexml, printxml, ensure_dir
 import logging
@@ -45,8 +47,6 @@ class TraCIScenario(KernelScenario):
         master_kernel : flow.core.kernel.Kernel
             the higher level kernel (used to call methods from other
             sub-kernels)
-        kernel_api : any
-            an API that may be used to interact with the simulator
         network : flow.scenarios.Scenario
             an object containing relevant network-specific features such as the
             locations and properties of nodes and edges in the network

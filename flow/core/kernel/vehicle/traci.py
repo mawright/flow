@@ -1,3 +1,5 @@
+"""Script containing the TraCI vehicle kernel class."""
+
 from flow.core.kernel.vehicle import KernelVehicle
 import traci.constants as tc
 from traci.exceptions import FatalTraCIError, TraCIException

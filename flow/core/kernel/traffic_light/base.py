@@ -1,3 +1,4 @@
+"""Script containing the base traffic light kernel class."""
 
 
 class KernelTrafficLight(object):

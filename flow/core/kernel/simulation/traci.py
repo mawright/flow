@@ -1,3 +1,5 @@
+"""Script containing the TraCI simulation kernel class."""
+
 from flow.core.kernel.simulation import KernelSimulation
 from flow.core.util import ensure_dir
 import traci.constants as tc

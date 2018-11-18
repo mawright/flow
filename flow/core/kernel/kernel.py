@@ -1,4 +1,5 @@
 """Script containing the Flow kernel object for interacting with simulators."""
+
 from flow.core.kernel.simulation import TraCISimulation
 from flow.core.kernel.scenario import TraCIScenario
 from flow.core.kernel.vehicle import TraCIVehicle
@@ -70,11 +71,7 @@ class Kernel(object):
                              format(simulator))
 
     def pass_api(self, kernel_api):
-        """
-
-        :param kernel_api:
-        :return:
-        """
+        """Pass the kernel API to all kernel subclasses."""
         self.kernel_api = kernel_api
         self.simulation.pass_api(kernel_api)
         self.scenario.pass_api(kernel_api)
@@ -91,6 +88,9 @@ class Kernel(object):
 
         Parameters
         ----------
+        reset : bool
+            specifies whether the simulator was reset in the last simulation
+            step
         """
         self.scenario.update(reset)
         self.simulation.update(reset)
