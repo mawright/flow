@@ -351,8 +351,7 @@ class TestEvenStartPos(unittest.TestCase):
         # check that all vehicles are only placed in edges specified in the
         # edges_distribution term
         for veh_id in self.env.k.vehicle.get_ids():
-            if self.env.k.vehicle.get_edge(veh_id) not in edges:
-                raise AssertionError
+            self.assertTrue(self.env.k.vehicle.get_edge(veh_id) in edges)
 
     def test_num_vehicles(self):
         """
@@ -492,9 +491,8 @@ class TestRandomStartPos(unittest.TestCase):
 
         # verify that all vehicles are located in the number of allocated lanes
         for veh_id in self.env.k.vehicle.get_ids():
-            if self.env.k.vehicle.get_lane(veh_id) >= \
-                    initial_config.lanes_distribution:
-                raise AssertionError
+            self.assertLess(self.env.k.vehicle.get_lane(veh_id),
+                            initial_config.lanes_distribution)
 
     def test_edges_distribution(self):
         """
@@ -512,8 +510,7 @@ class TestRandomStartPos(unittest.TestCase):
         # check that all vehicles are only placed in edges specified in the
         # edges_distribution term
         for veh_id in self.env.k.vehicle.get_ids():
-            if self.env.k.vehicle.get_edge(veh_id) not in edges:
-                raise AssertionError
+            self.assertTrue(self.env.k.vehicle.get_edge(veh_id) in edges)
 
 
 class TestEvenStartPosVariableLanes(unittest.TestCase):
@@ -554,8 +551,7 @@ class TestEvenStartPosVariableLanes(unittest.TestCase):
 
         # check that all possible lanes are covered
         lanes = self.env.k.vehicle.get_lane(self.env.k.vehicle.get_ids())
-        if any(i not in lanes for i in range(4)):
-            raise AssertionError
+        self.assertFalse(any(i not in lanes for i in range(4)))
 
 
 class TestRandomStartPosVariableLanes(TestEvenStartPosVariableLanes):

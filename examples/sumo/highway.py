@@ -4,7 +4,8 @@ from flow.controllers import IDMController
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, Vehicles, \
     NetParams, InitialConfig, InFlows
-from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
+from flow.envs.loop.lane_changing import LaneChangeAccelEnv, \
+    ADDITIONAL_ENV_PARAMS
 from flow.scenarios.highway import HighwayScenario, ADDITIONAL_NET_PARAMS
 
 
@@ -66,7 +67,7 @@ def highway_example(render=None):
         net_params=net_params,
         initial_config=initial_config)
 
-    env = AccelEnv(env_params, sumo_params, scenario)
+    env = LaneChangeAccelEnv(env_params, sumo_params, scenario)
 
     return SumoExperiment(env, scenario)
 

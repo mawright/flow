@@ -11,8 +11,10 @@ Observation Dimension: (28, )
 Horizon: 1500 steps
 """
 
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
-    SumoCarFollowingParams, Vehicles
+from copy import deepcopy
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.params import SumoCarFollowingParams
+from flow.core.vehicles import Vehicles
 from flow.controllers import IDMController, ContinuousRouter, RLController
 from flow.scenarios.figure_eight import ADDITIONAL_NET_PARAMS
 
@@ -70,7 +72,7 @@ flow_params = dict(
     # scenario's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         no_internal_links=False,
-        additional_params=ADDITIONAL_NET_PARAMS,
+        additional_params=deepcopy(ADDITIONAL_NET_PARAMS),
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see

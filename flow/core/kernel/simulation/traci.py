@@ -94,7 +94,8 @@ class TraCISimulation(KernelSimulation):
                         time.sleep(1.0 * int(time_stamp[-6:]) / 1e6)
                         port = sumolib.miscutils.getFreeSocketPort()
 
-                sumo_binary = "sumo-gui" if sim_params.render else "sumo"
+                sumo_binary = "sumo-gui" if sim_params.render is True \
+                    else "sumo"
 
                 # command used to start sumo
                 sumo_call = [

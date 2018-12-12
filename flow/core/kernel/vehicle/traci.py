@@ -150,6 +150,13 @@ class TraCIVehicle(KernelVehicle):
 
         # update the "headway", "leader", and "follower" variables
         for veh_id in self.__ids:
+            _position = vehicle_obs[veh_id][tc.VAR_POSITION]
+            _angle = vehicle_obs[veh_id][tc.VAR_ANGLE]
+            _time_step = sim_obs[tc.VAR_TIME_STEP]
+            _time_delta = sim_obs[tc.VAR_DELTA_T]
+            self.__vehicles[veh_id]["orientation"] = list(_position) + [_angle]
+            self.__vehicles[veh_id]["timestep"] = _time_step
+            self.__vehicles[veh_id]["timedelta"] = _time_delta
             headway = vehicle_obs.get(veh_id, {}).get(tc.VAR_LEADER, None)
             # check for a collided vehicle or a vehicle with no leader
             if headway is None:
@@ -234,7 +241,8 @@ class TraCIVehicle(KernelVehicle):
         # subscribe the new vehicle
         self.kernel_api.vehicle.subscribe(veh_id, [
             tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION, tc.VAR_ROAD_ID,
-            tc.VAR_SPEED, tc.VAR_EDGES
+            tc.VAR_SPEED, tc.VAR_EDGES, tc.VAR_POSITION, tc.VAR_ANGLE,
+            tc.VAR_SPEED_WITHOUT_TRACI
         ])
         self.kernel_api.vehicle.subscribeLeader(veh_id, 2000)
 
@@ -333,6 +341,18 @@ class TraCIVehicle(KernelVehicle):
         """Set the headway of the specified vehicle."""
         self.__vehicles[veh_id]["headway"] = headway
 
+    def get_orientation(self, veh_id):
+        """See parent class."""
+        return self.__vehicles[veh_id]["orientation"]
+
+    def get_timestep(self, veh_id):
+        """See parent class."""
+        return self.__vehicles[veh_id]["timestep"]
+
+    def get_timedelta(self, veh_id):
+        """See parent class."""
+        return self.__vehicles[veh_id]["timedelta"]
+
     def get_ids(self):
         """See parent class."""
         return self.__ids
@@ -399,6 +419,13 @@ class TraCIVehicle(KernelVehicle):
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_speed(vehID, error) for vehID in veh_id]
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_SPEED, error)
+
+    def get_default_speed(self, veh_id, error=-1001):
+        """See parent class."""
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_default_speed(vehID, error) for vehID in veh_id]
+        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_SPEED_WITHOUT_TRACI,
+                                                   error)
 
     def get_absolute_position(self, veh_id, error=-1001):
         """See parent class."""
@@ -501,6 +528,19 @@ class TraCIVehicle(KernelVehicle):
             return [self.get_lane_headways(vehID, error) for vehID in veh_id]
         return self.__vehicles.get(veh_id, {}).get("lane_headways", error)
 
+    def get_lane_leaders_speed(self, veh_id, error=list()):
+        """See parent class."""
+        lane_leaders = self.get_lane_leaders(veh_id)
+        return [0 if lane_leader is '' else
+                self.get_speed(lane_leader) for lane_leader in lane_leaders]
+
+    def get_lane_followers_speed(self, veh_id, error=list()):
+        """See parent class."""
+        lane_followers = self.get_lane_followers(veh_id)
+        return [0 if lane_follower is '' else
+                self.get_speed(lane_follower) for
+                lane_follower in lane_followers]
+
     def set_lane_leaders(self, veh_id, lane_leaders):
         """Set the lane leaders of the specified vehicle."""
         self.__vehicles[veh_id]["lane_leaders"] = lane_leaders
@@ -534,7 +574,8 @@ class TraCIVehicle(KernelVehicle):
     def _multi_lane_headways(self):
         """Compute multi-lane data for all vehicles.
 
-        This includes the lane leaders/followers/headways/tailways for all
+        This includes the lane leaders/followers/headways/tailways/
+        leader velocity/follower velocity for all
         vehicles in the network.
         """
         edge_list = self.master_kernel.scenario.get_edge_list()
@@ -616,6 +657,12 @@ class TraCIVehicle(KernelVehicle):
         tailway : list<float>
             Index = lane index
             Element = tailway at this lane
+        lead_speed : list<str>
+            Index = lane index
+            Element = speed of leader at this lane
+        follow_speed : list<str>
+            Index = lane index
+            Element = speed of follower at this lane
         leader : list<str>
             Index = lane index
             Element = leader at this lane
