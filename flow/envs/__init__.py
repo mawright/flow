@@ -13,6 +13,7 @@ from flow.envs.loop.wave_attenuation import WaveAttenuationEnv, \
     WaveAttenuationPOEnv
 from flow.envs.merge import WaveAttenuationMergePOEnv
 from flow.envs.test import TestEnv
+from flow.envs.multi_merge import VariableNumberVehicleMerge
 
 __all__ = [
     'Env', 'AccelEnv', 'LaneChangeAccelEnv',
@@ -21,4 +22,5 @@ __all__ = [
     'BottleNeckAccelEnv', 'WaveAttenuationEnv', 'WaveAttenuationPOEnv',
     'TrafficLightGridEnv', 'PO_TrafficLightGridEnv', 'DesiredVelocityEnv',
     'TestEnv', 'BayBridgeEnv',
+    'VariableNumberVehicleMerge'
 ]

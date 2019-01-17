@@ -334,7 +334,7 @@ class Env(*classdef):
         next_observation = np.copy(states)
 
         # test if the agent should terminate due to a crash
-        done = crash
+        done = crash or self.time_counter >= self.env_params.horizon * self.env_params.sims_per_step
 
         # compute the info for each agent
         infos = {}
