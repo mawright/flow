@@ -7,6 +7,7 @@ by Mania et. al
 """
 import json
 import argparse
+import socket
 
 import ray
 try:
@@ -83,6 +84,8 @@ if __name__ == "__main__":
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
     config["num_workers"] = min(num_cpus, num_rollouts)
+    if socket.gethostname() == 'matt-desktop':
+        config["num_gpus"] = 1
     config["num_rollouts"] = num_rollouts
     config["rollouts_used"] = num_rollouts
     # config["sgd_stepsize"] = grid_search([.01, .02])
@@ -112,7 +115,7 @@ if __name__ == "__main__":
             "max_failures": 999,
             "stop": {"training_iteration": 500},
             "num_samples": 1,
-            "upload_dir": "s3://"+upload_dir
+            # "upload_dir": "s3://"+upload_dir
         }
 
     if upload_dir:

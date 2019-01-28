@@ -6,6 +6,7 @@ Proximal Policy Optimization Algorithms by Schulman et. al.
 """
 import json
 import argparse
+import socket
 
 import ray
 try:
@@ -83,6 +84,8 @@ if __name__ == "__main__":
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
     config["num_workers"] = min(num_cpus, num_rollouts)
+    if socket.gethostname() == 'matt-desktop':
+        config["num_gpus"] = 1
     config["train_batch_size"] = horizon * num_rollouts
     config["use_gae"] = True
     config["horizon"] = horizon

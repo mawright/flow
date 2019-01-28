@@ -6,6 +6,7 @@ parameters can be specified here once and used on multiple environments.
 """
 import json
 import argparse
+import socket
 
 import ray
 try:
@@ -82,6 +83,8 @@ if __name__ == "__main__":
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
     config["num_workers"] = min(num_cpus, num_rollouts)
+    if socket.gethostname() == 'matt-desktop':
+        config["num_gpus"] = 1
     config["episodes_per_batch"] = num_rollouts
     config["eval_prob"] = 0.05
     # optimal parameters
@@ -107,8 +110,8 @@ if __name__ == "__main__":
             },
             "checkpoint_freq": 25,
             "max_failures": 999,
-            "stop": {"training_iteration": 500},
-            "num_samples": 1,
+            "stop": {"training_iteration": 250},
+            "num_samples": 2,
         }
 
     if upload_dir:

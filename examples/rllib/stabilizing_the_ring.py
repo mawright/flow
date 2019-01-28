@@ -5,6 +5,7 @@ vehicles in a variable length ring road.
 """
 
 import json
+import socket
 
 import ray
 try:
@@ -99,6 +100,8 @@ def setup_exps():
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
     config["num_workers"] = N_CPUS
+    # if socket.gethostname() == 'matt-desktop':
+        # config["num_gpus"] = 1
     config["train_batch_size"] = HORIZON * N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [16, 16]})
