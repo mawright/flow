@@ -84,14 +84,14 @@ flow_params = dict(
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
         restart_instance=True,
-        sim_step=0.5,
+        sim_step=0.2,
         render=False,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
-        sims_per_step=2,
+        sims_per_step=5,
         warmup_steps=0,
         additional_params={
             "max_accel": 1.5,

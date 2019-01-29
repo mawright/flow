@@ -459,10 +459,13 @@ class Env(gym.Env, Serializable):
         # collect observation new state associated with action
         next_observation = np.copy(self.state)
 
+        # test if the agent should terminate due to a crash
+        done = crash or self.time_counter >= self.env_params.horizon * self.env_params.sims_per_step
+
         # compute the reward
         reward = self.compute_reward(self.state, rl_actions, fail=crash)
 
-        return next_observation, reward, crash, {}
+        return next_observation, reward, done, {}
 
     def reset(self):
         """Reset the environment.
