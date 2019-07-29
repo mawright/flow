@@ -6,7 +6,7 @@ sudo apt-get install -y autoconf libtool pkg-config libgdal-dev libxerces-c-dev
 sudo apt-get install -y libproj-dev libfox-1.6-dev libxml2-dev libxslt1-dev
 sudo apt-get install -y build-essential curl unzip flex bison python python-dev
 sudo apt-get install -y python3-dev
-sudo pip3 install cmake cython
+# sudo pip3 install cmake cython
 
 echo "Installing sumo binaries"
 mkdir -p $HOME/sumo_binaries/bin
