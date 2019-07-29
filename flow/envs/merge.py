@@ -100,7 +100,8 @@ class WaveAttenuationMergePOEnv(Env):
     @property
     def observation_space(self):
         """See class definition."""
-        return Box(low=0, high=1, shape=(5 * self.num_rl, ), dtype=np.float32)
+        return Box(low=-np.inf, high=np.inf, shape=(5 * self.num_rl, ),
+                   dtype=np.float32)
 
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
@@ -121,7 +122,7 @@ class WaveAttenuationMergePOEnv(Env):
 
         observation = [0 for _ in range(5 * self.num_rl)]
         for i, rl_id in enumerate(self.rl_veh):
-            this_speed = self.k.vehicle.get_speed(rl_id)
+            this_speed = self.k.vehicle.get_speed(rl_id, 0)
             lead_id = self.k.vehicle.get_leader(rl_id)
             follower = self.k.vehicle.get_follower(rl_id)
 

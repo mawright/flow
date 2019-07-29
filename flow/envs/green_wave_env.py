@@ -1,9 +1,7 @@
 import numpy as np
 import re
 
-from gym.spaces.discrete import Discrete
-from gym.spaces.box import Box
-from gym.spaces.tuple_space import Tuple
+from gym.spaces import Discrete, Box, Tuple
 
 from flow.core import rewards
 from flow.envs.base_env import Env

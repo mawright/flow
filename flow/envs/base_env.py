@@ -354,8 +354,8 @@ class Env(*classdef):
 
         # test if the environment should terminate due to a collision or the
         # time horizon being met
-        done = crash or (self.time_counter >= self.env_params.warmup_steps
-                         + self.env_params.horizon)
+        done = crash or (self.time_counter / self.env_params.sims_per_step
+                         >= self.env_params.warmup_steps + self.env_params.horizon)
 
         # compute the info for each agent
         infos = {}

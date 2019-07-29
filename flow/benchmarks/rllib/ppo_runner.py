@@ -75,7 +75,7 @@ if __name__ == "__main__":
     create_env, env_name = make_create_env(params=flow_params, version=0)
 
     # initialize a ray instance
-    ray.init(redirect_output=True)
+    ray.init(log_to_driver=False)
 
     alg_run = "PPO"
 
@@ -98,7 +98,7 @@ if __name__ == "__main__":
     config["vf_clip_param"] = 1e6
     config["num_sgd_iter"] = 10
     config['clip_actions'] = False  # FIXME(ev) temporary ray bug
-    config["model"]["fcnet_hiddens"] = [100, 50, 25]
+    config["model"]["fcnet_hiddens"] = [64, 64]
     config["observation_filter"] = "NoFilter"
 
     # save the flow params for replay
@@ -119,10 +119,9 @@ if __name__ == "__main__":
         "checkpoint_freq": 25,
         "max_failures": 999,
         "stop": {
-            "training_iteration": 500
+            "timesteps_total": int(5e6)
         },
         "num_samples": 3,
-
     }
 
     if upload_dir:
